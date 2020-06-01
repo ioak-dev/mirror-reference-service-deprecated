@@ -5,7 +5,7 @@ const { getCollection } = require('../../lib/dbutils');
 
 const axios = require('axios');
 
-const ONEAUTH_API = 'http://127.0.0.1:8020/auth/';
+const ONEAUTH_API = process.env.ONEAUTH_API || 'http://127.0.0.1:8020';
 
 const typeDefs = gql`
   extend type Query {
@@ -26,7 +26,7 @@ const resolvers = {
     session: async (_: any, { key }: any) => {
       try {
         const response = await axios.get(
-          ONEAUTH_API + '210' + '/session/' + key
+          `${ONEAUTH_API}/auth/210/session/${key}`
         );
 
         if (response.status === 200) {
