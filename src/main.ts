@@ -25,6 +25,8 @@ const server = new ApolloServer({
     const user = authorize(token);
     return { user, token };
   },
+  introspection: true,
+  playground: true,
 });
 
 server
