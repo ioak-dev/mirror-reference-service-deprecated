@@ -17,6 +17,7 @@ mongoose.pluralize(undefined);
 const server = new ApolloServer({
   modules: [
     require('./modules/article'),
+    require('./modules/article/tag'),
     require('./modules/category'),
     require('./modules/user/index.ts'),
   ],

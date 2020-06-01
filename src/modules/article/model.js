@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const articleSchema = new Schema({
   title: { type: String },
   description: { type: String },
-  categoryId: { type: String },
+  articleId: { type: String },
 });
 
 const articleCollection = 'article';

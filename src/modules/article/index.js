@@ -1,5 +1,6 @@
 const { gql, AuthenticationError } = require('apollo-server');
 const { articleSchema, articleCollection } = require('./model');
+const { articleTagSchema, articleTagCollection } = require('./tag/model');
 const { getCollection } = require('../../lib/dbutils');
 
 const typeDefs = gql`
@@ -25,7 +26,6 @@ const typeDefs = gql`
     id: ID!
     title: String
     description: String
-    categoryId: String
   }
 
   extend type Category {
@@ -54,8 +54,14 @@ const resolvers = {
   Mutation: {
     addArticle: async (_, args, { user }) => {
       const model = getCollection(210, articleCollection, articleSchema);
+      const tagModel = getCollection(
+        210,
+        articleTagCollection,
+        articleTagSchema
+      );
+      let articleResponse;
       if (args.payload.id) {
-        return await model.findByIdAndUpdate(
+        articleResponse = await model.findByIdAndUpdate(
           args.payload.id,
           { ...args.payload, lastModifiedAt: new Date() },
           { new: true }
@@ -66,8 +72,27 @@ const resolvers = {
           createdAt: new Date(),
           lastModifiedAt: new Date(),
         });
-        return await data.save();
+        articleResponse = await data.save();
       }
+
+      args.payload.addTags.forEach(async (item) => {
+        const data = new tagModel({
+          name: item,
+          articleId: articleResponse._id,
+          createdAt: new Date(),
+          lastModifiedAt: new Date(),
+        });
+        await data.save();
+      });
+
+      args.payload.removeTags.forEach(async (item) => {
+        await tagModel.deleteMany({
+          articleId: articleResponse._id,
+          name: item,
+        });
+      });
+
+      return articleResponse;
     },
   },
 
