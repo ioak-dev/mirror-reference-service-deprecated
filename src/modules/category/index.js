@@ -26,6 +26,7 @@ const typeDefs = gql`
   type Category {
     id: ID!
     name: String
+    parentCategoryId: String
   }
 `;
 

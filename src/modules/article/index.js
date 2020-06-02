@@ -6,7 +6,7 @@ const { getCollection } = require('../../lib/dbutils');
 const typeDefs = gql`
   extend type Query {
     article(id: ID!): Article
-    articles: [Article]
+    articles(categoryId: ID, pageSize: Int, pageNo: Int): ArticlePaginated
   }
 
   extend type Mutation {
@@ -22,14 +22,16 @@ const typeDefs = gql`
     removeTags: [String]
   }
 
+  type ArticlePaginated {
+    pageNo: Int
+    hasMore: Boolean
+    results: [Article]!
+  }
+
   type Article {
     id: ID!
     title: String
     description: String
-  }
-
-  extend type Category {
-    articles: [Article]
   }
 `;
 
@@ -42,12 +44,31 @@ const resolvers = {
       const model = getCollection(210, articleCollection, articleSchema);
       return await model.findById(id);
     },
-    articles: async (_, args, { user, token }) => {
+    articles: async (
+      _,
+      { categoryId, pageSize = 0, pageNo = 0 },
+      { user, token }
+    ) => {
       // if (!user) {
       //   return new AuthenticationError('Not authorized to access this content');
       // }
+      if (!categoryId) {
+        return {
+          results: [],
+          pageNo: 0,
+          hasMore: false,
+        };
+      }
       const model = getCollection(210, articleCollection, articleSchema);
-      return await model.find({});
+      const response = await model
+        .find({ categoryId: categoryId })
+        .skip(pageNo * pageSize)
+        .limit(pageSize);
+      return {
+        results: response,
+        pageNo: response.length === pageSize ? pageNo + 1 : pageNo,
+        hasMore: response.length === pageSize ? true : false,
+      };
     },
   },
 
@@ -93,15 +114,6 @@ const resolvers = {
       });
 
       return articleResponse;
-    },
-  },
-
-  Category: {
-    articles: {
-      resolve: async (parent, _args, context, info) => {
-        const model = getCollection(210, articleCollection, articleSchema);
-        return await model.find({ categoryId: parent.id });
-      },
     },
   },
 };
