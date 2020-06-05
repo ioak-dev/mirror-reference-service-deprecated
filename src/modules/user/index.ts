@@ -19,6 +19,10 @@ const typeDefs = gql`
     email: String
     token: String
   }
+
+  extend type Feedback {
+    user: User
+  }
 `;
 
 const resolvers = {
@@ -55,6 +59,13 @@ const resolvers = {
       } catch (error) {
         return null;
       }
+    },
+  },
+
+  Feedback: {
+    user: async (parent: { userId: any }) => {
+      const model = getCollection(210, userCollection, userSchema);
+      return await model.findById(parent.userId);
     },
   },
 };
