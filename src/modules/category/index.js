@@ -52,17 +52,11 @@ const resolvers = {
     addCategory: async (_, args, { user }) => {
       const model = getCollection(210, categoryCollection, categorySchema);
       if (args.payload.id) {
-        return await model.findByIdAndUpdate(
-          args.payload.id,
-          { ...args.payload, lastModifiedAt: new Date() },
-          { new: true }
-        );
-      } else {
-        const data = new model({
-          ...args.payload,
-          createdAt: new Date(),
-          lastModifiedAt: new Date(),
+        return await model.findByIdAndUpdate(args.payload.id, args.payload, {
+          new: true,
         });
+      } else {
+        const data = new model(args.payload);
         return await data.save();
       }
     },

@@ -1,10 +1,13 @@
 var mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
-const articleTagSchema = new Schema({
-  name: { type: String },
-  articleId: { type: String },
-});
+const articleTagSchema = new Schema(
+  {
+    name: { type: String },
+    articleId: { type: String },
+  },
+  { timestamps: true }
+);
 
 const articleTagCollection = 'article.tag';
 
