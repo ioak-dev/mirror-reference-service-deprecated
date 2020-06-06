@@ -14,6 +14,7 @@ const typeDefs = gql`
 
   extend type Mutation {
     addArticle(payload: ArticlePayload): Article
+    deleteArticle(id: ID!): Article
   }
 
   input ArticlePayload {
@@ -254,6 +255,22 @@ const resolvers = {
       // ]);
 
       return articleResponse;
+    },
+    deleteArticle: async (_, { id }, { user }) => {
+      const model = getCollection(210, articleCollection, articleSchema);
+      const tagModel = getCollection(
+        210,
+        articleTagCollection,
+        articleTagSchema
+      );
+
+      const res = await model.findByIdAndDelete(id);
+
+      await tagModel.deleteMany({
+        articleId: id,
+      });
+
+      return res;
     },
   },
 };
