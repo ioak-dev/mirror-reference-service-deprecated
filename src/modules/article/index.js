@@ -8,7 +8,7 @@ const typeDefs = gql`
   scalar DateScalar
   extend type Query {
     article(id: ID!): Article
-    articles(categoryId: ID, pageSize: Int, pageNo: Int): ArticlePaginated
+    articles(categoryId: ID!, pageSize: Int, pageNo: Int): ArticlePaginated
     searchArticles(text: String, pageSize: Int, pageNo: Int): ArticlePaginated
   }
 
@@ -44,6 +44,9 @@ const typeDefs = gql`
   }
 
   extend type Feedback {
+    article: Article
+  }
+  extend type Tag {
     article: Article
   }
 `;
@@ -164,7 +167,6 @@ const resolvers = {
         .skip(pageNo * pageSize)
         .limit(pageSize);
 
-      console.log(res);
       return {
         results: res,
         pageNo: res.length === pageSize ? pageNo + 1 : pageNo,
@@ -194,6 +196,13 @@ const resolvers = {
   },
 
   Feedback: {
+    article: async (parent) => {
+      const model = getCollection(210, articleCollection, articleSchema);
+      return await model.findById(parent.articleId);
+    },
+  },
+
+  Tag: {
     article: async (parent) => {
       const model = getCollection(210, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
