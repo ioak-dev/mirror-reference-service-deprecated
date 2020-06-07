@@ -20,6 +20,7 @@ const server = new ApolloServer({
     require('./modules/article/tag'),
     require('./modules/article/feedback'),
     require('./modules/category'),
+    require('./modules/asset'),
     require('./modules/user/index.ts'),
   ],
   context: ({ req, res }: any) => {
