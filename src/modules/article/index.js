@@ -8,12 +8,13 @@ const typeDefs = gql`
   scalar DateScalar
   extend type Query {
     article(id: ID!): Article
-    articles(categoryId: ID, pageSize: Int, pageNo: Int): ArticlePaginated
+    articles(categoryId: ID!, pageSize: Int, pageNo: Int): ArticlePaginated
     searchArticles(text: String, pageSize: Int, pageNo: Int): ArticlePaginated
   }
 
   extend type Mutation {
     addArticle(payload: ArticlePayload): Article
+    deleteArticle(id: ID!): Article
   }
 
   input ArticlePayload {
@@ -44,6 +45,9 @@ const typeDefs = gql`
   }
 
   extend type Feedback {
+    article: Article
+  }
+  extend type Tag {
     article: Article
   }
 `;
@@ -164,7 +168,6 @@ const resolvers = {
         .skip(pageNo * pageSize)
         .limit(pageSize);
 
-      console.log(res);
       return {
         results: res,
         pageNo: res.length === pageSize ? pageNo + 1 : pageNo,
@@ -194,6 +197,13 @@ const resolvers = {
   },
 
   Feedback: {
+    article: async (parent) => {
+      const model = getCollection(210, articleCollection, articleSchema);
+      return await model.findById(parent.articleId);
+    },
+  },
+
+  Tag: {
     article: async (parent) => {
       const model = getCollection(210, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
@@ -245,6 +255,22 @@ const resolvers = {
       // ]);
 
       return articleResponse;
+    },
+    deleteArticle: async (_, { id }, { user }) => {
+      const model = getCollection(210, articleCollection, articleSchema);
+      const tagModel = getCollection(
+        210,
+        articleTagCollection,
+        articleTagSchema
+      );
+
+      const res = await model.findByIdAndDelete(id);
+
+      await tagModel.deleteMany({
+        articleId: id,
+      });
+
+      return res;
     },
   },
 };

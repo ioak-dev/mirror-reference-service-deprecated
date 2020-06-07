@@ -5,8 +5,6 @@ const categorySchema = new Schema(
   {
     name: { type: String },
     parentCategoryId: { type: String },
-    childCount: { type: Number, default: 0 },
-    articleCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
