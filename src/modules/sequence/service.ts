@@ -47,6 +47,5 @@ export const nextval = async (
     { nextval: sequence.nextval + sequence.factor },
     { upsert: true, new: true }
   );
-  console.log(sequence.nextval);
   return sequence.nextval;
 };

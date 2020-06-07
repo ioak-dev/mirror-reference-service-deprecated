@@ -6,7 +6,8 @@ const { nextval } = require('../sequence/service');
 
 const typeDefs = gql`
   extend type Query {
-    asset(id: ID!): Asset
+    asset(assetId: String!): Asset
+    assetById(id: ID!): Asset
     assets: [Asset]
   }
 
@@ -34,12 +35,12 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    asset: async (_, { id }, { user }) => {
+    asset: async (_, { assetId }, { user }) => {
       // if (!user) {
       //   return new AuthenticationError('Not authorized to access this content');
       // }
       const model = getGlobalCollection(assetCollection, assetSchema);
-      return await model.findById(id);
+      return await model.findOne({ assetId });
     },
     assets: async () => {
       // if (!user) {
@@ -57,6 +58,14 @@ const resolvers = {
         return await model.findByIdAndUpdate(args.payload.id, args.payload, {
           new: true,
         });
+      } else if (args.payload.assetId) {
+        return await model.findOneAndUpdate(
+          { assetId: args.payload.assetId },
+          args.payload,
+          {
+            new: true,
+          }
+        );
       } else {
         const data = new model({
           ...args.payload,
