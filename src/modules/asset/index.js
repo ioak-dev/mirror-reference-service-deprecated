@@ -13,6 +13,7 @@ const typeDefs = gql`
 
   extend type Mutation {
     updateAsset(payload: AssetPayload): Asset
+    createAsset(payload: AssetPayload, addition: AssetAdditionPayload): Asset
   }
 
   input AssetPayload {
@@ -21,6 +22,10 @@ const typeDefs = gql`
     description: String
     jwtPassword: String
     productionMode: Boolean
+  }
+
+  input AssetAdditionPayload {
+    email: String
   }
 
   type Asset {
@@ -73,6 +78,17 @@ const resolvers = {
         });
         return await data.save();
       }
+    },
+    createAsset: async (_, { payload, addition }, { user }) => {
+      const model = getGlobalCollection(assetCollection, assetSchema);
+      const data = new model({
+        ...payload,
+        assetId: `a${await nextval('assetId')}`,
+      });
+      console.log(
+        `user account needs to be setup for ${addition.email} in ${payload.name}`
+      );
+      return await data.save();
     },
   },
 };
