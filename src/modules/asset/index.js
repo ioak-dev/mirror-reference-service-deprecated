@@ -1,7 +1,8 @@
 const { gql } = require('apollo-server');
 const { assetCollection, assetSchema } = require('./model');
-const { getCollection } = require('../../lib/dbutils');
+const { getGlobalCollection } = require('../../lib/dbutils');
 const { isUnauthorized } = require('../../lib/authutils');
+const { nextval } = require('../sequence/service');
 
 const typeDefs = gql`
   extend type Query {
@@ -27,6 +28,7 @@ const typeDefs = gql`
     description: String
     jwtPassword: String
     productionMode: Boolean
+    assetId: String
   }
 `;
 
@@ -36,27 +38,30 @@ const resolvers = {
       // if (!user) {
       //   return new AuthenticationError('Not authorized to access this content');
       // }
-      const model = getCollection(210, assetCollection, assetSchema);
+      const model = getGlobalCollection(assetCollection, assetSchema);
       return await model.findById(id);
     },
     assets: async () => {
       // if (!user) {
       //   return new AuthenticationError('Not authorized to access this content');
       // }
-      const model = getCollection(210, assetCollection, assetSchema);
+      const model = getGlobalCollection(assetCollection, assetSchema);
       return await model.find();
     },
   },
 
   Mutation: {
     updateAsset: async (_, args, { user }) => {
-      const model = getCollection(210, assetCollection, assetSchema);
+      const model = getGlobalCollection(assetCollection, assetSchema);
       if (args.payload.id) {
         return await model.findByIdAndUpdate(args.payload.id, args.payload, {
           new: true,
         });
       } else {
-        const data = new model(args.payload);
+        const data = new model({
+          ...args.payload,
+          assetId: `a${await nextval('assetId')}`,
+        });
         return await data.save();
       }
     },

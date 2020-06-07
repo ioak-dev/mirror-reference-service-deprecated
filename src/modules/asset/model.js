@@ -7,6 +7,7 @@ const assetSchema = new Schema(
     description: { type: String },
     jwtPassword: { type: String },
     productionMode: { type: Boolean, default: false },
+    assetId: { type: String },
   },
   { timestamps: true }
 );
