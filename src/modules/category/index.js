@@ -27,6 +27,7 @@ const typeDefs = gql`
     id: ID!
     name: String
     parentCategoryId: String
+    articles: Int
   }
 `;
 

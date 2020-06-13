@@ -2,6 +2,7 @@ const { gql, AuthenticationError } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { articleSchema, articleCollection } = require('./model');
 const { articleTagSchema, articleTagCollection } = require('./tag/model');
+const { categorySchema, categoryCollection } = require('../category/model');
 const { getCollection } = require('../../lib/dbutils');
 
 const typeDefs = gql`
@@ -219,7 +220,26 @@ const resolvers = {
         articleTagSchema
       );
       let articleResponse;
+
       if (args.payload.id) {
+        existingArticle = await model.findById(args.payload.id);
+        if (existingArticle.categoryId !== args.payload.categoryId) {
+          const categoryModel = getCollection(
+            210,
+            categoryCollection,
+            categorySchema
+          );
+          await categoryModel.findByIdAndUpdate(
+            existingArticle.categoryId,
+            { $inc: { articles: -1 } },
+            { new: true }
+          );
+          await categoryModel.findByIdAndUpdate(
+            args.payload.categoryId,
+            { $inc: { articles: 1 } },
+            { new: true }
+          );
+        }
         articleResponse = await model.findByIdAndUpdate(
           args.payload.id,
           args.payload,
@@ -228,6 +248,16 @@ const resolvers = {
       } else {
         const data = new model(args.payload);
         articleResponse = await data.save();
+        const categoryModel = getCollection(
+          210,
+          categoryCollection,
+          categorySchema
+        );
+        await categoryModel.findByIdAndUpdate(
+          args.payload.categoryId,
+          { $inc: { articles: 1 } },
+          { new: true }
+        );
       }
 
       args.payload.addTags.forEach(async (item) => {
