@@ -126,39 +126,6 @@ const resolvers = {
         };
       }
       const model = getCollection(210, articleCollection, articleSchema);
-      // const response = await model.aggregate([
-      //   {
-      //     $facet: {
-      //       data: [
-      //         {
-      //           $match: {
-      //             $or: [
-      //               { description: { $regex: new RegExp(text, 'ig') } },
-      //               { title: { $regex: new RegExp(text, 'ig') } },
-      //             ],
-      //           },
-      //         },
-      //         { $skip: pageNo * pageSize },
-      //         // { $limit: pageSize },
-      //       ],
-      //       count: [
-      //         {
-      //           $match: {
-      //             $or: [
-      //               { description: { $regex: new RegExp(text, 'ig') } },
-      //               { title: { $regex: new RegExp(text, 'ig') } },
-      //             ],
-      //           },
-      //         },
-      //         { $count: 'count' },
-      //       ],
-      //     },
-      //   },
-      // ]);
-      // console.log('*********');
-      // console.log(response);
-      // console.log(response[0].data);
-      // console.log(response[0].count);
       const res = await model
         .find({
           $or: [
@@ -174,26 +141,6 @@ const resolvers = {
         pageNo: res.length === pageSize ? pageNo + 1 : pageNo,
         hasMore: res.length === pageSize ? true : false,
       };
-      // if (
-      //   response &&
-      //   response[0] &&
-      //   response[0].count &&
-      //   response[0].count.length > 0
-      // ) {
-      //   return {
-      //     results: response[0].data,
-      //     pageNo: response[0].data.length === pageSize ? pageNo + 1 : pageNo,
-      //     hasMore: response[0].data.length === pageSize ? true : false,
-      //     total: response[0].count[0].count,
-      //   };
-      // } else {
-      //   return {
-      //     results: [],
-      //     pageNo: 0,
-      //     hasMore: false,
-      //     total: 0,
-      //   };
-      // }
     },
   },
 
