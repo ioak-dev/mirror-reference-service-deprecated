@@ -65,19 +65,19 @@ const oaSession = async (space: string, authKey: string) => {
 
 const emailSession = async (sessionId: string) => {
   const model = getCollection(210, sessionCollection, sessionSchema);
-  const session = await model.findOne({ strategy: 'email', sessionId });
+  const session = await model.findOne({ sessionId });
   if (!session) {
     return null;
   }
 
-  const data: any = jwt.verify(session.token, 'jwtsecret');
+  const data: any = await jwt.verify(session.token, 'jwtsecret');
 
   if (!data) {
     return null;
   }
 
   return {
-    id: data._id,
+    id: data.userId,
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email,
