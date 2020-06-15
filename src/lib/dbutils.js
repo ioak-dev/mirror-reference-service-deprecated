@@ -5,4 +5,9 @@ const getCollection = (space, collection, schema) => {
   return db.model(collection, schema);
 };
 
-module.exports = { getCollection };
+const getGlobalCollection = (collection, schema) => {
+  const db = mongoose.connection.useDb(`mirror`);
+  return db.model(collection, schema);
+};
+
+module.exports = { getCollection, getGlobalCollection };

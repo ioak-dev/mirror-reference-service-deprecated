@@ -6,6 +6,7 @@ if (module.hot) {
 import { ApolloServer, AuthenticationError } from 'apollo-server';
 import { authorize } from './middlewares';
 import mongoose from 'mongoose';
+import { initializeSequences } from './startup';
 
 const databaseUri = process.env.DATABASE_URI || 'mongodb://localhost:27017';
 mongoose.connect(databaseUri, {
@@ -19,7 +20,9 @@ const server = new ApolloServer({
     require('./modules/article'),
     require('./modules/article/tag'),
     require('./modules/article/feedback'),
-    require('./modules/category'),
+    require('./modules/article/category'),
+    require('./modules/asset'),
+    require('./modules/session'),
     require('./modules/user/index.ts'),
   ],
   context: ({ req, res }: any) => {
@@ -34,3 +37,6 @@ const server = new ApolloServer({
 server
   .listen({ port: process.env.PORT || 4000 })
   .then(({ url }: any) => console.log(`Server started at ${url}`));
+
+// Server startup scripts
+initializeSequences();

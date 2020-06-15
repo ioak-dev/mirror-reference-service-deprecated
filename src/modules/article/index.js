@@ -2,6 +2,7 @@ const { gql, AuthenticationError } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { articleSchema, articleCollection } = require('./model');
 const { articleTagSchema, articleTagCollection } = require('./tag/model');
+const { categorySchema, categoryCollection } = require('./category/model');
 const { getCollection } = require('../../lib/dbutils');
 
 const typeDefs = gql`
@@ -125,39 +126,6 @@ const resolvers = {
         };
       }
       const model = getCollection(210, articleCollection, articleSchema);
-      // const response = await model.aggregate([
-      //   {
-      //     $facet: {
-      //       data: [
-      //         {
-      //           $match: {
-      //             $or: [
-      //               { description: { $regex: new RegExp(text, 'ig') } },
-      //               { title: { $regex: new RegExp(text, 'ig') } },
-      //             ],
-      //           },
-      //         },
-      //         { $skip: pageNo * pageSize },
-      //         // { $limit: pageSize },
-      //       ],
-      //       count: [
-      //         {
-      //           $match: {
-      //             $or: [
-      //               { description: { $regex: new RegExp(text, 'ig') } },
-      //               { title: { $regex: new RegExp(text, 'ig') } },
-      //             ],
-      //           },
-      //         },
-      //         { $count: 'count' },
-      //       ],
-      //     },
-      //   },
-      // ]);
-      // console.log('*********');
-      // console.log(response);
-      // console.log(response[0].data);
-      // console.log(response[0].count);
       const res = await model
         .find({
           $or: [
@@ -173,26 +141,6 @@ const resolvers = {
         pageNo: res.length === pageSize ? pageNo + 1 : pageNo,
         hasMore: res.length === pageSize ? true : false,
       };
-      // if (
-      //   response &&
-      //   response[0] &&
-      //   response[0].count &&
-      //   response[0].count.length > 0
-      // ) {
-      //   return {
-      //     results: response[0].data,
-      //     pageNo: response[0].data.length === pageSize ? pageNo + 1 : pageNo,
-      //     hasMore: response[0].data.length === pageSize ? true : false,
-      //     total: response[0].count[0].count,
-      //   };
-      // } else {
-      //   return {
-      //     results: [],
-      //     pageNo: 0,
-      //     hasMore: false,
-      //     total: 0,
-      //   };
-      // }
     },
   },
 
@@ -219,7 +167,26 @@ const resolvers = {
         articleTagSchema
       );
       let articleResponse;
+
       if (args.payload.id) {
+        existingArticle = await model.findById(args.payload.id);
+        if (existingArticle.categoryId !== args.payload.categoryId) {
+          const categoryModel = getCollection(
+            210,
+            categoryCollection,
+            categorySchema
+          );
+          await categoryModel.findByIdAndUpdate(
+            existingArticle.categoryId,
+            { $inc: { articles: -1 } },
+            { new: true }
+          );
+          await categoryModel.findByIdAndUpdate(
+            args.payload.categoryId,
+            { $inc: { articles: 1 } },
+            { new: true }
+          );
+        }
         articleResponse = await model.findByIdAndUpdate(
           args.payload.id,
           args.payload,
@@ -228,6 +195,16 @@ const resolvers = {
       } else {
         const data = new model(args.payload);
         articleResponse = await data.save();
+        const categoryModel = getCollection(
+          210,
+          categoryCollection,
+          categorySchema
+        );
+        await categoryModel.findByIdAndUpdate(
+          args.payload.categoryId,
+          { $inc: { articles: 1 } },
+          { new: true }
+        );
       }
 
       args.payload.addTags.forEach(async (item) => {
