@@ -12,6 +12,7 @@ const ONEAUTH_API = process.env.ONEAUTH_API || 'http://127.0.0.1:8020';
 const typeDefs = gql`
   extend type Query {
     newEmailSession(email: String!): Session
+    newExternSession(token: String!): Session
     session(key: ID!): UserSession
   }
 
@@ -63,7 +64,7 @@ const oaSession = async (space: string, authKey: string) => {
   }
 };
 
-const emailSession = async (sessionId: string) => {
+const emailOrExternSession = async (sessionId: string) => {
   const model = getCollection(210, sessionCollection, sessionSchema);
   const session = await model.findOne({ sessionId });
   if (!session) {
@@ -109,16 +110,50 @@ const resolvers = {
       }
       return null;
     },
+    newExternSession: async (_: any, { token }: any) => {
+      try {
+        if (!token) {
+          return null;
+        }
+        const data: any = jwt.verify(token, 'jwtsecret');
+        const userModel = getCollection(210, userCollection, userSchema);
+
+        const response = await userModel.findOneAndUpdate(
+          { email: data.email, resolver: 'extern' },
+          { ...data, resolver: 'extern' },
+          { upsert: true, new: true, rawResult: true }
+        );
+        const user = response.value;
+        if (user) {
+          const model = getCollection(210, sessionCollection, sessionSchema);
+          return await model.create({
+            sessionId: uuidv4(),
+            token: jwt.sign(
+              {
+                userId: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                strategy: user.strategy,
+              },
+              'jwtsecret',
+              { expiresIn: '8h' }
+            ),
+          });
+        }
+        return null;
+      } catch (err) {
+        return null;
+      }
+    },
     session: async (_: any, { key }: any) => {
       const keyParts = key.split(' ');
       switch (keyParts[0]) {
         case 'oa':
           return await oaSession(keyParts[1], keyParts[2]);
         case 'email':
-          return await emailSession(keyParts[1]);
         case 'extern':
-          console.log(keyParts);
-          break;
+          return await emailOrExternSession(keyParts[1]);
       }
     },
   },
