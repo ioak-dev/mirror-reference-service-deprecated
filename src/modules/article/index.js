@@ -2,7 +2,7 @@ const { gql, AuthenticationError } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { articleSchema, articleCollection } = require('./model');
 const { articleTagSchema, articleTagCollection } = require('./tag/model');
-const { categorySchema, categoryCollection } = require('../category/model');
+const { categorySchema, categoryCollection } = require('./category/model');
 const { getCollection } = require('../../lib/dbutils');
 
 const typeDefs = gql`

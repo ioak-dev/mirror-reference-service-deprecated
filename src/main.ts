@@ -20,7 +20,7 @@ const server = new ApolloServer({
     require('./modules/article'),
     require('./modules/article/tag'),
     require('./modules/article/feedback'),
-    require('./modules/category'),
+    require('./modules/article/category'),
     require('./modules/asset'),
     require('./modules/session'),
     require('./modules/user/index.ts'),

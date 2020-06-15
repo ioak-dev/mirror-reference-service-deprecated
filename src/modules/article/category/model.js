@@ -10,6 +10,6 @@ const categorySchema = new Schema(
   { timestamps: true }
 );
 
-const categoryCollection = 'category';
+const categoryCollection = 'article.category';
 
 module.exports = { categorySchema, categoryCollection };

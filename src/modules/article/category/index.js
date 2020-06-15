@@ -1,29 +1,29 @@
 const { gql } = require('apollo-server');
 const { categoryCollection, categorySchema } = require('./model');
-const { getCollection } = require('../../lib/dbutils');
-const { isUnauthorized } = require('../../lib/authutils');
+const { getCollection } = require('../../../lib/dbutils');
+const { isUnauthorized } = require('../../../lib/authutils');
 
 const typeDefs = gql`
   extend type Query {
-    category(id: ID!): Category
-    categories: [Category]
+    articleCategory(id: ID!): ArticleCategory
+    articleCategories: [ArticleCategory]
   }
 
   extend type Mutation {
-    addCategory(payload: CategoryPayload): Category
+    addArticleCategory(payload: ArticleCategoryPayload): ArticleCategory
   }
 
-  input CategoryPayload {
+  input ArticleCategoryPayload {
     id: String
     name: String
     parentCategoryId: String
   }
 
   extend type Article {
-    category: Category
+    category: ArticleCategory
   }
 
-  type Category {
+  type ArticleCategory {
     id: ID!
     name: String
     parentCategoryId: String
@@ -33,14 +33,14 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    category: async (_, { id }, { user }) => {
+    articleCategory: async (_, { id }, { user }) => {
       // if (!user) {
       //   return new AuthenticationError('Not authorized to access this content');
       // }
       const model = getCollection(210, categoryCollection, categorySchema);
       return await model.findById(id);
     },
-    categories: async () => {
+    articleCategories: async () => {
       // if (!user) {
       //   return new AuthenticationError('Not authorized to access this content');
       // }
@@ -50,7 +50,7 @@ const resolvers = {
   },
 
   Mutation: {
-    addCategory: async (_, args, { user }) => {
+    addArticleCategory: async (_, args, { user }) => {
       const model = getCollection(210, categoryCollection, categorySchema);
       if (args.payload.id) {
         return await model.findByIdAndUpdate(args.payload.id, args.payload, {
