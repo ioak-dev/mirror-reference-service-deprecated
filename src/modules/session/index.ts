@@ -12,7 +12,7 @@ const ONEAUTH_API = process.env.ONEAUTH_API || 'http://127.0.0.1:8020';
 const typeDefs = gql`
   extend type Query {
     newEmailSession(email: String!): Session
-    newExternSession(token: String!): Session
+    newExternSession(token: String!, asset: String): Session
     session(key: ID!, asset: String): UserSession
   }
 
@@ -110,13 +110,17 @@ const resolvers = {
       }
       return null;
     },
-    newExternSession: async (_: any, { token }: any, { asset }: any) => {
+    newExternSession: async (_: any, args: any, { asset }: any) => {
       try {
-        if (!token) {
+        if (!args.token) {
           return null;
         }
-        const data: any = jwt.verify(token, 'jwtsecret');
-        const userModel = getCollection(asset, userCollection, userSchema);
+        const data: any = jwt.verify(args.token, 'jwtsecret');
+        const userModel = getCollection(
+          asset || args.asset,
+          userCollection,
+          userSchema
+        );
 
         const response = await userModel.findOneAndUpdate(
           { email: data.email, resolver: 'extern' },
@@ -125,7 +129,11 @@ const resolvers = {
         );
         const user = response.value;
         if (user) {
-          const model = getCollection(asset, sessionCollection, sessionSchema);
+          const model = getCollection(
+            asset || args.asset,
+            sessionCollection,
+            sessionSchema
+          );
           return await model.create({
             sessionId: uuidv4(),
             token: jwt.sign(
