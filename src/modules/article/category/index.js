@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server');
+const { gql, AuthenticationError } = require('apollo-server');
 const { categoryCollection, categorySchema } = require('./model');
 const { getCollection } = require('../../../lib/dbutils');
 const { isUnauthorized } = require('../../../lib/authutils');
@@ -33,25 +33,28 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    articleCategory: async (_, { id }, { user }) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
-      const model = getCollection(210, categoryCollection, categorySchema);
+    articleCategory: async (_, { id }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, categoryCollection, categorySchema);
       return await model.findById(id);
     },
-    articleCategories: async () => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
-      const model = getCollection(210, categoryCollection, categorySchema);
+    articleCategories: async (_, __, { user, asset }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, categoryCollection, categorySchema);
       return await model.find();
     },
   },
 
   Mutation: {
-    addArticleCategory: async (_, args, { user }) => {
-      const model = getCollection(210, categoryCollection, categorySchema);
+    addArticleCategory: async (_, args, { user, asset }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, categoryCollection, categorySchema);
       if (args.payload.id) {
         return await model.findByIdAndUpdate(args.payload.id, args.payload, {
           new: true,
@@ -65,11 +68,13 @@ const resolvers = {
 
   Article: {
     category: {
-      resolve: async (parent, _args, { user }, info) => {
-        if (isUnauthorized(user)) {
-          return isUnauthorized(user);
+      resolve: async (parent, _args, { asset, user }, info) => {
+        if (!asset || !user) {
+          return new AuthenticationError(
+            'Not authorized to access this content'
+          );
         }
-        const model = getCollection(210, categoryCollection, categorySchema);
+        const model = getCollection(asset, categoryCollection, categorySchema);
         return await model.findById(parent.categoryId);
       },
     },

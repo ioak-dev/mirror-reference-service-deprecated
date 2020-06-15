@@ -26,9 +26,17 @@ const server = new ApolloServer({
     require('./modules/user/index.ts'),
   ],
   context: ({ req, res }: any) => {
-    const token = req.headers.authorization || '';
-    const user = authorize(token);
-    return { user, token };
+    const authString = req.headers.authorization || '';
+    const authParts = authString.split(' ');
+    let token = '';
+    let user = null;
+    let asset = '';
+    if (authParts.length === 2) {
+      token = authParts[1];
+      asset = authParts[0];
+      user = authorize(token);
+    }
+    return { user, token, asset };
   },
   introspection: true,
   playground: true,

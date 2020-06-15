@@ -71,11 +71,11 @@ const resolvers = {
     },
   }),
   Query: {
-    article: async (_, { id }, { user }) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
-      const model = getCollection(210, articleCollection, articleSchema);
+    article: async (_, { id }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, articleCollection, articleSchema);
       response = await model.findByIdAndUpdate(
         id,
         { $inc: { views: 1 } },
@@ -86,11 +86,11 @@ const resolvers = {
     articles: async (
       _,
       { categoryId, pageSize = 0, pageNo = 0 },
-      { user, token }
+      { asset, user }
     ) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
       if (!categoryId) {
         return {
           results: [],
@@ -98,7 +98,7 @@ const resolvers = {
           hasMore: false,
         };
       }
-      const model = getCollection(210, articleCollection, articleSchema);
+      const model = getCollection(asset, articleCollection, articleSchema);
       const response = await model
         .find({ categoryId: categoryId })
         .skip(pageNo * pageSize)
@@ -112,11 +112,11 @@ const resolvers = {
     searchArticles: async (
       _,
       { text, pageSize = 0, pageNo = 0 },
-      { user, token }
+      { asset, user }
     ) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
       if (!text) {
         return {
           results: [],
@@ -125,7 +125,7 @@ const resolvers = {
           total: 0,
         };
       }
-      const model = getCollection(210, articleCollection, articleSchema);
+      const model = getCollection(asset, articleCollection, articleSchema);
       const res = await model
         .find({
           $or: [
@@ -145,24 +145,30 @@ const resolvers = {
   },
 
   Feedback: {
-    article: async (parent) => {
-      const model = getCollection(210, articleCollection, articleSchema);
+    article: async (parent, _, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
     },
   },
 
   Tag: {
-    article: async (parent) => {
-      const model = getCollection(210, articleCollection, articleSchema);
+    article: async (parent, _, { asset, user }) => {
+      const model = getCollection(asset, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
     },
   },
 
   Mutation: {
-    addArticle: async (_, args, { user }) => {
-      const model = getCollection(210, articleCollection, articleSchema);
+    addArticle: async (_, args, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, articleCollection, articleSchema);
       const tagModel = getCollection(
-        210,
+        asset,
         articleTagCollection,
         articleTagSchema
       );
@@ -172,7 +178,7 @@ const resolvers = {
         existingArticle = await model.findById(args.payload.id);
         if (existingArticle.categoryId !== args.payload.categoryId) {
           const categoryModel = getCollection(
-            210,
+            asset,
             categoryCollection,
             categorySchema
           );
@@ -196,7 +202,7 @@ const resolvers = {
         const data = new model(args.payload);
         articleResponse = await data.save();
         const categoryModel = getCollection(
-          210,
+          asset,
           categoryCollection,
           categorySchema
         );
@@ -233,10 +239,13 @@ const resolvers = {
 
       return articleResponse;
     },
-    deleteArticle: async (_, { id }, { user }) => {
-      const model = getCollection(210, articleCollection, articleSchema);
+    deleteArticle: async (_, { id }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, articleCollection, articleSchema);
       const tagModel = getCollection(
-        210,
+        asset,
         articleTagCollection,
         articleTagSchema
       );
