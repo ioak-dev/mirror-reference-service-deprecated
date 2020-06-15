@@ -25,12 +25,12 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    feedback: async (_, { articleId }, { user }) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
+    feedback: async (_, { articleId }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
       const model = getCollection(
-        210,
+        asset,
         articleFeedbackCollection,
         articleFeedbackSchema
       );
@@ -40,9 +40,14 @@ const resolvers = {
 
   Article: {
     feedback: {
-      resolve: async (parent, _args, { user }, info) => {
+      resolve: async (parent, _args, { asset, user }) => {
+        if (!asset || !user) {
+          return new AuthenticationError(
+            'Not authorized to access this content'
+          );
+        }
         const model = getCollection(
-          210,
+          asset,
           articleFeedbackCollection,
           articleFeedbackSchema
         );
@@ -52,9 +57,12 @@ const resolvers = {
   },
 
   Mutation: {
-    addFeedback: async (_, args, { user }) => {
+    addFeedback: async (_, args, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
       const model = getCollection(
-        210,
+        asset,
         articleFeedbackCollection,
         articleFeedbackSchema
       );
@@ -65,7 +73,7 @@ const resolvers = {
       );
       if (!response.lastErrorObject.updatedExisting) {
         const articleModel = getCollection(
-          210,
+          asset,
           articleCollection,
           articleSchema
         );
@@ -79,9 +87,12 @@ const resolvers = {
       }
       return response.value;
     },
-    removeFeedback: async (_, args, { user }) => {
+    removeFeedback: async (_, args, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
       const model = getCollection(
-        210,
+        asset,
         articleFeedbackCollection,
         articleFeedbackSchema
       );
@@ -93,7 +104,7 @@ const resolvers = {
       );
       if (response.lastErrorObject.n > 0) {
         const articleModel = getCollection(
-          210,
+          asset,
           articleCollection,
           articleSchema
         );

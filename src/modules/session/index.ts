@@ -13,7 +13,7 @@ const typeDefs = gql`
   extend type Query {
     newEmailSession(email: String!): Session
     newExternSession(token: String!): Session
-    session(key: ID!): UserSession
+    session(key: ID!, asset: String): UserSession
   }
 
   type Session {
@@ -31,7 +31,7 @@ const typeDefs = gql`
   }
 `;
 
-const oaSession = async (space: string, authKey: string) => {
+const oaSession = async (asset: string, space: string, authKey: string) => {
   try {
     const response = await axios.get(
       `${ONEAUTH_API}/auth/${space}/session/${authKey}`
@@ -39,7 +39,7 @@ const oaSession = async (space: string, authKey: string) => {
 
     if (response.status === 200) {
       const user: any = jwt.verify(response.data.token, 'jwtsecret');
-      const model = getCollection(210, userCollection, userSchema);
+      const model = getCollection(asset, userCollection, userSchema);
       const data = await model.findByIdAndUpdate(
         user.userId,
         { ...user, resolver: 'oneauth_space' },
@@ -64,8 +64,8 @@ const oaSession = async (space: string, authKey: string) => {
   }
 };
 
-const emailOrExternSession = async (sessionId: string) => {
-  const model = getCollection(210, sessionCollection, sessionSchema);
+const emailOrExternSession = async (asset: string, sessionId: string) => {
+  const model = getCollection(asset, sessionCollection, sessionSchema);
   const session = await model.findOne({ sessionId });
   if (!session) {
     return null;
@@ -88,11 +88,11 @@ const emailOrExternSession = async (sessionId: string) => {
 
 const resolvers = {
   Query: {
-    newEmailSession: async (_: any, { email }: any) => {
-      const userModel = getCollection(210, userCollection, userSchema);
+    newEmailSession: async (_: any, { email }: any, { asset }: any) => {
+      const userModel = getCollection(asset, userCollection, userSchema);
       const user = await userModel.findOne({ email, resolver: 'email' });
       if (user) {
-        const model = getCollection(210, sessionCollection, sessionSchema);
+        const model = getCollection(asset, sessionCollection, sessionSchema);
         return await model.create({
           sessionId: uuidv4(),
           token: jwt.sign(
@@ -110,13 +110,13 @@ const resolvers = {
       }
       return null;
     },
-    newExternSession: async (_: any, { token }: any) => {
+    newExternSession: async (_: any, { token }: any, { asset }: any) => {
       try {
         if (!token) {
           return null;
         }
         const data: any = jwt.verify(token, 'jwtsecret');
-        const userModel = getCollection(210, userCollection, userSchema);
+        const userModel = getCollection(asset, userCollection, userSchema);
 
         const response = await userModel.findOneAndUpdate(
           { email: data.email, resolver: 'extern' },
@@ -125,7 +125,7 @@ const resolvers = {
         );
         const user = response.value;
         if (user) {
-          const model = getCollection(210, sessionCollection, sessionSchema);
+          const model = getCollection(asset, sessionCollection, sessionSchema);
           return await model.create({
             sessionId: uuidv4(),
             token: jwt.sign(
@@ -146,14 +146,14 @@ const resolvers = {
         return null;
       }
     },
-    session: async (_: any, { key }: any) => {
-      const keyParts = key.split(' ');
+    session: async (_: any, args: any, { asset }: any) => {
+      const keyParts = args.key.split(' ');
       switch (keyParts[0]) {
         case 'oa':
-          return await oaSession(keyParts[1], keyParts[2]);
+          return await oaSession(asset || args.asset, keyParts[1], keyParts[2]);
         case 'email':
         case 'extern':
-          return await emailOrExternSession(keyParts[1]);
+          return await emailOrExternSession(asset || args.asset, keyParts[1]);
       }
     },
   },

@@ -32,11 +32,15 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    tagCloud: async (_, __, { user }) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
-      const model = getCollection(210, articleTagCollection, articleTagSchema);
+    tagCloud: async (_, __, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(
+        asset,
+        articleTagCollection,
+        articleTagSchema
+      );
       return await model.aggregate([
         {
           $group: {
@@ -55,11 +59,11 @@ const resolvers = {
     articlesByTag: async (
       _,
       { tag, pageSize = 0, pageNo = 0 },
-      { user, token }
+      { asset, user }
     ) => {
-      // if (!user) {
-      //   return new AuthenticationError('Not authorized to access this content');
-      // }
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
       if (!tag) {
         return {
           results: [],
@@ -67,7 +71,11 @@ const resolvers = {
           hasMore: false,
         };
       }
-      const model = getCollection(210, articleTagCollection, articleTagSchema);
+      const model = getCollection(
+        asset,
+        articleTagCollection,
+        articleTagSchema
+      );
       const response = await model
         .find({ name: tag })
         .skip(pageNo * pageSize)
@@ -89,9 +97,14 @@ const resolvers = {
 
   Article: {
     tags: {
-      resolve: async (parent, _args, context, info) => {
+      resolve: async (parent, _args, { asset, user }, info) => {
+        if (!asset || !user) {
+          return new AuthenticationError(
+            'Not authorized to access this content'
+          );
+        }
         const model = getCollection(
-          210,
+          asset,
           articleTagCollection,
           articleTagSchema
         );

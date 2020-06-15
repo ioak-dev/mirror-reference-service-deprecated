@@ -29,15 +29,15 @@ const typeDefs = gql`
 
 const resolvers = {
   Feedback: {
-    user: async (parent: { userId: any }) => {
-      const model = getCollection(210, userCollection, userSchema);
+    user: async (parent: { userId: any }, _: any, { asset, user }: any) => {
+      const model = getCollection(asset, userCollection, userSchema);
       return await model.findById(parent.userId);
     },
   },
 
   Mutation: {
-    createEmailAccount: async (_: any, args: any, { payload }: any) => {
-      const model = getCollection(210, userCollection, userSchema);
+    createEmailAccount: async (_: any, args: any, { asset, user }: any) => {
+      const model = getCollection(asset, userCollection, userSchema);
       const response = await model.findOneAndUpdate(
         { email: args.payload.email, resolver: 'email' },
         { ...args.payload, resolver: 'email' },
