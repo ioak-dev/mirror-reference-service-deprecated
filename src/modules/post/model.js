@@ -5,7 +5,6 @@ const postSchema = new Schema(
   {
     title: { type: String },
     description: { type: String },
-    categoryId: { type: String },
     views: { type: Number, default: 0 },
     helpful: { type: Number, default: 0 },
     notHelpful: { type: Number, default: 0 },

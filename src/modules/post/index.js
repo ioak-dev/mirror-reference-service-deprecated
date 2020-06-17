@@ -2,13 +2,12 @@ const { gql, AuthenticationError } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { postSchema, postCollection } = require('./model');
 const { postTagSchema, postTagCollection } = require('./tag/model');
-const { categorySchema, categoryCollection } = require('./category/model');
 const { getCollection } = require('../../lib/dbutils');
 
 const typeDefs = gql`
   extend type Query {
     post(id: ID!): Post
-    posts(categoryId: ID!, pageSize: Int, pageNo: Int): PostPaginated
+    posts(pageSize: Int, pageNo: Int): PostPaginated
     searchPosts(text: String, pageSize: Int, pageNo: Int): PostPaginated
   }
 
@@ -21,7 +20,6 @@ const typeDefs = gql`
     id: String
     title: String
     description: String
-    categoryId: String
     addTags: [String]
     removeTags: [String]
   }
@@ -66,24 +64,13 @@ const resolvers = {
       );
       return response;
     },
-    posts: async (
-      _,
-      { categoryId, pageSize = 0, pageNo = 0 },
-      { asset, user }
-    ) => {
+    posts: async (_, { pageSize = 0, pageNo = 0 }, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
-      if (!categoryId) {
-        return {
-          results: [],
-          pageNo: 0,
-          hasMore: false,
-        };
-      }
       const model = getCollection(asset, postCollection, postSchema);
       const response = await model
-        .find({ categoryId: categoryId })
+        .find({})
         .skip(pageNo * pageSize)
         .limit(pageSize);
       return {
@@ -155,23 +142,6 @@ const resolvers = {
 
       if (args.payload.id) {
         existingPost = await model.findById(args.payload.id);
-        if (existingPost.categoryId !== args.payload.categoryId) {
-          const categoryModel = getCollection(
-            asset,
-            categoryCollection,
-            categorySchema
-          );
-          await categoryModel.findByIdAndUpdate(
-            existingPost.categoryId,
-            { $inc: { posts: -1 } },
-            { new: true }
-          );
-          await categoryModel.findByIdAndUpdate(
-            args.payload.categoryId,
-            { $inc: { posts: 1 } },
-            { new: true }
-          );
-        }
         postResponse = await model.findByIdAndUpdate(
           args.payload.id,
           args.payload,
@@ -180,16 +150,6 @@ const resolvers = {
       } else {
         const data = new model(args.payload);
         postResponse = await data.save();
-        const categoryModel = getCollection(
-          asset,
-          categoryCollection,
-          categorySchema
-        );
-        await categoryModel.findByIdAndUpdate(
-          args.payload.categoryId,
-          { $inc: { posts: 1 } },
-          { new: true }
-        );
       }
 
       args.payload.addTags.forEach(async (item) => {
@@ -206,15 +166,6 @@ const resolvers = {
           name: item,
         });
       });
-
-      // const categoryStat = await model.aggregate([
-      //   {
-      //     $group: {
-      //       _id: '$categoryId',
-      //       count: { $sum: 1 },
-      //     },
-      //   },
-      // ]);
 
       return postResponse;
     },
