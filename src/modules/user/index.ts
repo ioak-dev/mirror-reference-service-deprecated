@@ -22,13 +22,13 @@ const typeDefs = gql`
     resolver: String
   }
 
-  extend type Feedback {
+  extend type ArticleFeedback {
     user: User
   }
 `;
 
 const resolvers = {
-  Feedback: {
+  ArticleFeedback: {
     user: async (parent: { userId: any }, _: any, { asset, user }: any) => {
       const model = getCollection(asset, userCollection, userSchema);
       return await model.findById(parent.userId);

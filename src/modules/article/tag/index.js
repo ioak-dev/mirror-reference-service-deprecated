@@ -4,35 +4,35 @@ const { getCollection } = require('../../../lib/dbutils');
 
 const typeDefs = gql`
   extend type Query {
-    tagCloud: [TagCloud]
-    articlesByTag(tag: String!, pageSize: Int, pageNo: Int): TagPaginated
+    articleTagCloud: [ArticleTagCloud]
+    articlesByTag(tag: String!, pageSize: Int, pageNo: Int): ArticleTagPaginated
   }
 
-  type TagPaginated {
+  type ArticleTagPaginated {
     pageNo: Int
     hasMore: Boolean
     total: Int
-    results: [Tag]!
+    results: [ArticleTag]!
   }
 
-  type TagCloud {
+  type ArticleTagCloud {
     name: String
     count: Int
   }
 
-  type Tag {
+  type ArticleTag {
     id: ID!
     name: String
   }
 
   extend type Article {
-    tags: [Tag]
+    tags: [ArticleTag]
   }
 `;
 
 const resolvers = {
   Query: {
-    tagCloud: async (_, __, { asset, user }) => {
+    articleTagCloud: async (_, __, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }

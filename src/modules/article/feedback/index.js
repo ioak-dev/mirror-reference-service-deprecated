@@ -5,27 +5,27 @@ const { getCollection } = require('../../../lib/dbutils');
 
 const typeDefs = gql`
   extend type Query {
-    feedback(articleId: ID!): [Feedback]
+    articleFeedback(articleId: ID!): [ArticleFeedback]
   }
 
   extend type Mutation {
-    addFeedback(articleId: String!, type: String!): Feedback
-    removeFeedback(articleId: String!, type: String!): Feedback
+    addArticleFeedback(articleId: String!, type: String!): ArticleFeedback
+    removeArticleFeedback(articleId: String!, type: String!): ArticleFeedback
   }
 
-  type Feedback {
+  type ArticleFeedback {
     id: ID!
     type: String
   }
 
   extend type Article {
-    feedback: [Feedback]
+    feedback: [ArticleFeedback]
   }
 `;
 
 const resolvers = {
   Query: {
-    feedback: async (_, { articleId }, { asset, user }) => {
+    articleFeedback: async (_, { articleId }, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
@@ -57,7 +57,7 @@ const resolvers = {
   },
 
   Mutation: {
-    addFeedback: async (_, args, { asset, user }) => {
+    addArticleFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
@@ -87,7 +87,7 @@ const resolvers = {
       }
       return response.value;
     },
-    removeFeedback: async (_, args, { asset, user }) => {
+    removeArticleFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }

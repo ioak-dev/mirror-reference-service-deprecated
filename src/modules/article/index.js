@@ -45,10 +45,10 @@ const typeDefs = gql`
     updatedAt: DateScalar
   }
 
-  extend type Feedback {
+  extend type ArticleFeedback {
     article: Article
   }
-  extend type Tag {
+  extend type ArticleTag {
     article: Article
   }
 `;
@@ -144,7 +144,7 @@ const resolvers = {
     },
   },
 
-  Feedback: {
+  ArticleFeedback: {
     article: async (parent, _, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
@@ -154,7 +154,7 @@ const resolvers = {
     },
   },
 
-  Tag: {
+  ArticleTag: {
     article: async (parent, _, { asset, user }) => {
       const model = getCollection(asset, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
