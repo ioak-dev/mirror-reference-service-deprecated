@@ -24,10 +24,10 @@ const server = new ApolloServer({
     require('./modules/article/tag'),
     require('./modules/article/feedback'),
     require('./modules/article/category'),
-    // require('./modules/post'),
-    // require('./modules/post/tag'),
-    // require('./modules/post/feedback'),
-    // require('./modules/post/category'),
+    require('./modules/post'),
+    require('./modules/post/tag'),
+    require('./modules/post/feedback'),
+    require('./modules/post/category'),
   ],
   context: ({ req, res }: any) => {
     const authString = req.headers.authorization || '';
