@@ -1,0 +1,18 @@
+var mongoose = require('mongoose');
+
+const Schema = mongoose.Schema;
+const postCommentSchema = new Schema(
+  {
+    text: { type: String },
+    parentId: { type: String },
+    postId: { type: String },
+    createdBy: { type: String },
+    updatedBy: { type: String },
+  },
+  { timestamps: true }
+);
+
+const postCommentCollection = 'post.comment';
+
+// module.exports = mongoose.model('bookmarks', postSchema);
+module.exports = { postCommentSchema, postCommentCollection };

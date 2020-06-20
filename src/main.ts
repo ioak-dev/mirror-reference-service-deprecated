@@ -27,6 +27,7 @@ const server = new ApolloServer({
     require('./modules/post'),
     require('./modules/post/tag'),
     require('./modules/post/feedback'),
+    require('./modules/post/comment'),
   ],
   context: ({ req, res }: any) => {
     const authString = req.headers.authorization || '';
