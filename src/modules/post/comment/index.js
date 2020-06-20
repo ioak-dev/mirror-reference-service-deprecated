@@ -56,7 +56,7 @@ const resolvers = {
       );
       const response = await model
         .find({ postId: postId })
-        .sort({ parentId: 1, createdAt: 1 })
+        .sort({ rootParentId: 1, parentId: 1, createdAt: 1 })
         .skip(pageNo * pageSize)
         .limit(pageSize);
       return {
@@ -80,7 +80,7 @@ const resolvers = {
 
       let id = payload.id;
 
-      if (!id) {
+      if (!payload.id) {
         const postModel = getCollection(asset, postCollection, postSchema);
         await postModel.findByIdAndUpdate(
           payload.postId,
@@ -94,11 +94,21 @@ const resolvers = {
         id = response.id;
       }
 
+      const parentFields = { parentId: payload.parentId || id };
+      if (!payload.id) {
+        const parentComment = await model.findById(payload.parentId);
+        if (parentComment) {
+          parentFields.rootParentId = parentComment.rootParentId;
+        } else {
+          parentFields.rootParentId = parentFields.parentId;
+        }
+      }
+
       return await model.findByIdAndUpdate(
         id,
         {
           ...payload,
-          parentId: payload.parentId || id,
+          ...parentFields,
           updatedBy: user.userId,
         },
         {

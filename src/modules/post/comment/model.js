@@ -5,6 +5,7 @@ const postCommentSchema = new Schema(
   {
     text: { type: String },
     parentId: { type: String },
+    rootParentId: { type: String },
     postId: { type: String },
     createdBy: { type: String },
     updatedBy: { type: String },
