@@ -56,6 +56,7 @@ const resolvers = {
       );
       const response = await model
         .find({ postId: postId })
+        .sort({ parentId: 1, createdAt: 1 })
         .skip(pageNo * pageSize)
         .limit(pageSize);
       return {
