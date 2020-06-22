@@ -34,8 +34,12 @@ const typeDefs = gql`
     id: ID!
     text: String
     parentId: String
+    helpful: Int
+    notHelpful: Int
     createdBy: String
     updatedBy: String
+    createdAt: DateScalar
+    updatedAt: DateScalar
   }
 `;
 
@@ -56,7 +60,8 @@ const resolvers = {
       );
       const response = await model
         .find({ postId: postId })
-        .sort({ rootParentId: 1, parentId: 1, createdAt: 1 })
+        // .sort({ rootParentId: 1, parentId: 1, createdAt: 1 })
+        .sort({ createdAt: 1 })
         .skip(pageNo * pageSize)
         .limit(pageSize);
       return {

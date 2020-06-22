@@ -7,6 +7,8 @@ const postCommentSchema = new Schema(
     parentId: { type: String },
     rootParentId: { type: String },
     postId: { type: String },
+    helpful: { type: Number, default: 0 },
+    notHelpful: { type: Number, default: 0 },
     createdBy: { type: String },
     updatedBy: { type: String },
   },
