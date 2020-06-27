@@ -6,6 +6,7 @@ const postSchema = new Schema(
     title: { type: String },
     description: { type: String },
     views: { type: Number, default: 0 },
+    followers: { type: Number, default: 0 },
     comments: { type: Number, default: 0 },
     helpful: { type: Number, default: 0 },
     notHelpful: { type: Number, default: 0 },

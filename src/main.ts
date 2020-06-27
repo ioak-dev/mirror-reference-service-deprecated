@@ -27,6 +27,7 @@ const server = new ApolloServer({
     require('./modules/post'),
     require('./modules/post/tag'),
     require('./modules/post/feedback'),
+    require('./modules/post/follower'),
     require('./modules/post/comment'),
     require('./modules/post/comment/feedback'),
   ],

@@ -36,6 +36,8 @@ const typeDefs = gql`
     title: String
     description: String
     views: Int!
+    comments: Int!
+    followers: Int!
     helpful: Int!
     notHelpful: Int!
     createdAt: DateScalar
