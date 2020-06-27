@@ -41,6 +41,10 @@ const typeDefs = gql`
     createdAt: DateScalar
     updatedAt: DateScalar
   }
+
+  extend type PostCommentFeedback {
+    postComment: PostComment
+  }
 `;
 
 const resolvers = {
@@ -69,6 +73,20 @@ const resolvers = {
         pageNo: response.length === pageSize ? pageNo + 1 : pageNo,
         hasMore: response.length === pageSize ? true : false,
       };
+    },
+  },
+
+  PostCommentFeedback: {
+    postComment: async (parent, _, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(
+        asset,
+        postCommentCollection,
+        postCommentSchema
+      );
+      return await model.findById(parent.commentId);
     },
   },
 
