@@ -10,6 +10,7 @@ const typeDefs = gql`
       pageSize: Int
       pageNo: Int
     ): PostCommentPaginated
+    postComment(id: ID!): PostComment
   }
 
   extend type Mutation {
@@ -68,6 +69,7 @@ const resolvers = {
       const response = await model
         .find({ postId: postId })
         // .sort({ rootParentId: 1, parentId: 1, createdAt: 1 })
+        .sort({ isAnswer: -1 })
         .sort({ createdAt: 1 })
         .skip(pageNo * pageSize)
         .limit(pageSize);
@@ -76,6 +78,17 @@ const resolvers = {
         pageNo: response.length === pageSize ? pageNo + 1 : pageNo,
         hasMore: response.length === pageSize ? true : false,
       };
+    },
+    postComment: async (_, { id }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(
+        asset,
+        postCommentCollection,
+        postCommentSchema
+      );
+      return await model.findById(id);
     },
   },
 
