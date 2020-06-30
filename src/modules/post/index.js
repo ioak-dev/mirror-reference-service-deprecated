@@ -2,6 +2,10 @@ const { gql, AuthenticationError } = require('apollo-server');
 const { GraphQLScalarType } = require('graphql');
 const { postSchema, postCollection } = require('./model');
 const { postTagSchema, postTagCollection } = require('./tag/model');
+const {
+  postFollowerSchema,
+  postFollowerCollection,
+} = require('./follower/model');
 const { getCollection } = require('../../lib/dbutils');
 
 const typeDefs = gql`
@@ -152,6 +156,11 @@ const resolvers = {
       }
       const model = getCollection(asset, postCollection, postSchema);
       const tagModel = getCollection(asset, postTagCollection, postTagSchema);
+      const followerModel = getCollection(
+        asset,
+        postFollowerCollection,
+        postFollowerSchema
+      );
       let postResponse;
 
       if (args.payload.id) {
@@ -162,8 +171,14 @@ const resolvers = {
           { new: true }
         );
       } else {
-        const data = new model(args.payload);
+        const data = new model({ ...args.payload, followers: 1 });
         postResponse = await data.save();
+
+        await followerModel.findOneAndUpdate(
+          { postId: postResponse.id, userId: user.userId },
+          { postId: postResponse.id, userId: user.userId },
+          { upsert: true, new: true, rawResult: true }
+        );
       }
 
       args.payload.addTags.forEach(async (item) => {
