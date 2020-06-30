@@ -6,6 +6,8 @@ const postSchema = new Schema(
     title: { type: String },
     description: { type: String },
     views: { type: Number, default: 0 },
+    isAnswered: { type: Boolean, default: false },
+    answeredOn: { type: Date },
     followers: { type: Number, default: 0 },
     comments: { type: Number, default: 0 },
     helpful: { type: Number, default: 0 },

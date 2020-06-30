@@ -9,6 +9,7 @@ const postCommentSchema = new Schema(
     postId: { type: String },
     helpful: { type: Number, default: 0 },
     notHelpful: { type: Number, default: 0 },
+    isAnswer: { type: Boolean, default: false },
     createdBy: { type: String },
     updatedBy: { type: String },
   },

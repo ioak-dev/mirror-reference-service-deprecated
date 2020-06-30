@@ -37,6 +37,8 @@ const typeDefs = gql`
     description: String
     views: Int!
     comments: Int!
+    isAnswered: Boolean!
+    answeredOn: DateScalar
     followers: Int!
     helpful: Int!
     notHelpful: Int!
@@ -48,6 +50,9 @@ const typeDefs = gql`
     post: Post
   }
   extend type PostTag {
+    post: Post
+  }
+  extend type PostFollower {
     post: Post
   }
 `;
@@ -127,6 +132,13 @@ const resolvers = {
   },
 
   PostTag: {
+    post: async (parent, _, { asset, user }) => {
+      const model = getCollection(asset, postCollection, postSchema);
+      return await model.findById(parent.postId);
+    },
+  },
+
+  PostFollower: {
     post: async (parent, _, { asset, user }) => {
       const model = getCollection(asset, postCollection, postSchema);
       return await model.findById(parent.postId);

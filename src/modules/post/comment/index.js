@@ -14,6 +14,8 @@ const typeDefs = gql`
 
   extend type Mutation {
     updatePostComment(payload: PostCommentPayload!): PostComment
+    markPostCommentAsAnswer(id: ID!): PostComment
+    unmarkPostCommentAsAnswer(id: ID!): PostComment
   }
 
   type PostCommentPaginated {
@@ -36,6 +38,7 @@ const typeDefs = gql`
     parentId: String
     helpful: Int
     notHelpful: Int
+    isAnswer: Boolean
     createdBy: String
     updatedBy: String
     createdAt: DateScalar
@@ -138,6 +141,78 @@ const resolvers = {
           new: true,
         }
       );
+    },
+    markPostCommentAsAnswer: async (_, { id }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(
+        asset,
+        postCommentCollection,
+        postCommentSchema
+      );
+
+      const response = await model.findByIdAndUpdate(
+        id,
+        {
+          isAnswer: true,
+          updatedBy: user.userId,
+        },
+        {
+          new: true,
+        }
+      );
+
+      await model.updateMany(
+        { $and: [{ postId: response.postId }, { _id: { $ne: id } }] },
+        {
+          $set: {
+            isAnswer: false,
+          },
+        },
+        {
+          new: true,
+        }
+      );
+
+      const postModel = getCollection(asset, postCollection, postSchema);
+      await postModel.findByIdAndUpdate(
+        response.postId,
+        { isAnswered: true, answeredOn: new Date() },
+        { new: true }
+      );
+
+      return response;
+    },
+    unmarkPostCommentAsAnswer: async (_, { id }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(
+        asset,
+        postCommentCollection,
+        postCommentSchema
+      );
+
+      const response = await model.findByIdAndUpdate(
+        id,
+        {
+          isAnswer: false,
+          updatedBy: user.userId,
+        },
+        {
+          new: true,
+        }
+      );
+
+      const postModel = getCollection(asset, postCollection, postSchema);
+      await postModel.findByIdAndUpdate(
+        response.postId,
+        { isAnswered: false, answeredOn: null },
+        { new: true }
+      );
+
+      return response;
     },
   },
 };
