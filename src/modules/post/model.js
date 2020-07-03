@@ -12,6 +12,8 @@ const postSchema = new Schema(
     comments: { type: Number, default: 0 },
     helpful: { type: Number, default: 0 },
     notHelpful: { type: Number, default: 0 },
+    createdBy: { type: String },
+    updatedBy: { type: String },
   },
   { timestamps: true }
 );

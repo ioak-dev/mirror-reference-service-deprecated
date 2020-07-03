@@ -13,6 +13,7 @@ const typeDefs = gql`
     post(id: ID!): Post
     posts(pageSize: Int, pageNo: Int): PostPaginated
     searchPosts(text: String, pageSize: Int, pageNo: Int): PostPaginated
+    myPosts(pageSize: Int, pageNo: Int): PostPaginated
   }
 
   extend type Mutation {
@@ -48,6 +49,8 @@ const typeDefs = gql`
     notHelpful: Int!
     createdAt: DateScalar
     updatedAt: DateScalar
+    createdBy: String
+    updatedBy: String
   }
 
   extend type PostFeedback {
@@ -123,6 +126,24 @@ const resolvers = {
         hasMore: res.length === pageSize ? true : false,
       };
     },
+    myPosts: async (_, { pageSize = 0, pageNo = 0 }, { asset, user }) => {
+      if (!asset || !user) {
+        return new AuthenticationError('Not authorized to access this content');
+      }
+      const model = getCollection(asset, postCollection, postSchema);
+      const res = await model
+        .find({
+          createdBy: user.userId,
+        })
+        .skip(pageNo * pageSize)
+        .limit(pageSize);
+
+      return {
+        results: res,
+        pageNo: res.length === pageSize ? pageNo + 1 : pageNo,
+        hasMore: res.length === pageSize ? true : false,
+      };
+    },
   },
 
   PostFeedback: {
@@ -167,11 +188,16 @@ const resolvers = {
         existingPost = await model.findById(args.payload.id);
         postResponse = await model.findByIdAndUpdate(
           args.payload.id,
-          args.payload,
+          { ...args.payload, updatedBy: user.userId },
           { new: true }
         );
       } else {
-        const data = new model({ ...args.payload, followers: 1 });
+        const data = new model({
+          ...args.payload,
+          followers: 1,
+          createdBy: user.userId,
+          updatedBy: user.userId,
+        });
         postResponse = await data.save();
 
         await followerModel.findOneAndUpdate(
