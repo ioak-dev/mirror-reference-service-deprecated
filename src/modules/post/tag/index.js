@@ -1,46 +1,42 @@
 const { gql, AuthenticationError } = require('apollo-server');
-const { articleTagSchema, articleTagCollection } = require('./model');
+const { postTagSchema, postTagCollection } = require('./model');
 const { getCollection } = require('../../../lib/dbutils');
 
 const typeDefs = gql`
   extend type Query {
-    articleTagCloud: [ArticleTagCloud]
-    articlesByTag(tag: String!, pageSize: Int, pageNo: Int): ArticleTagPaginated
+    postTagCloud: [PostTagCloud]
+    postsByTag(tag: String!, pageSize: Int, pageNo: Int): PostTagPaginated
   }
 
-  type ArticleTagPaginated {
+  type PostTagPaginated {
     pageNo: Int
     hasMore: Boolean
     total: Int
-    results: [ArticleTag]!
+    results: [PostTag]!
   }
 
-  type ArticleTagCloud {
+  type PostTagCloud {
     name: String
     count: Int
   }
 
-  type ArticleTag {
+  type PostTag {
     id: ID!
     name: String
   }
 
-  extend type Article {
-    tags: [ArticleTag]
+  extend type Post {
+    tags: [PostTag]
   }
 `;
 
 const resolvers = {
   Query: {
-    articleTagCloud: async (_, __, { asset, user }) => {
+    postTagCloud: async (_, __, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
-      const model = getCollection(
-        asset,
-        articleTagCollection,
-        articleTagSchema
-      );
+      const model = getCollection(asset, postTagCollection, postTagSchema);
       return await model.aggregate([
         {
           $group: {
@@ -56,7 +52,7 @@ const resolvers = {
         },
       ]);
     },
-    articlesByTag: async (
+    postsByTag: async (
       _,
       { tag, pageSize = 0, pageNo = 0 },
       { asset, user }
@@ -71,11 +67,7 @@ const resolvers = {
           hasMore: false,
         };
       }
-      const model = getCollection(
-        asset,
-        articleTagCollection,
-        articleTagSchema
-      );
+      const model = getCollection(asset, postTagCollection, postTagSchema);
       const response = await model
         .find({ name: tag })
         .skip(pageNo * pageSize)
@@ -90,12 +82,12 @@ const resolvers = {
     //   // if (!user) {
     //   //   return new AuthenticationError('Not authorized to access this content');
     //   // }
-    //   const model = getCollection(210, articleTagCollection, articleTagSchema);
+    //   const model = getCollection(210, postTagCollection, postTagSchema);
     //   return await model.find({});
     // },
   },
 
-  Article: {
+  Post: {
     tags: {
       resolve: async (parent, _args, { asset, user }, info) => {
         if (!asset || !user) {
@@ -103,12 +95,8 @@ const resolvers = {
             'Not authorized to access this content'
           );
         }
-        const model = getCollection(
-          asset,
-          articleTagCollection,
-          articleTagSchema
-        );
-        return await model.find({ articleId: parent.id });
+        const model = getCollection(asset, postTagCollection, postTagSchema);
+        return await model.find({ postId: parent.id });
       },
     },
   },

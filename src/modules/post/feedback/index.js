@@ -1,44 +1,44 @@
 const { gql, AuthenticationError } = require('apollo-server');
-const { articleFeedbackSchema, articleFeedbackCollection } = require('./model');
-const { articleSchema, articleCollection } = require('../model');
+const { postFeedbackSchema, postFeedbackCollection } = require('./model');
+const { postSchema, postCollection } = require('../model');
 const { getCollection } = require('../../../lib/dbutils');
 
 const typeDefs = gql`
   extend type Query {
-    articleFeedback(articleId: ID!): [ArticleFeedback]
+    postFeedback(postId: ID!): [PostFeedback]
   }
 
   extend type Mutation {
-    addArticleFeedback(articleId: String!, type: String!): ArticleFeedback
-    removeArticleFeedback(articleId: String!, type: String!): ArticleFeedback
+    addPostFeedback(postId: String!, type: String!): PostFeedback
+    removePostFeedback(postId: String!, type: String!): PostFeedback
   }
 
-  type ArticleFeedback {
+  type PostFeedback {
     id: ID!
     type: String
   }
 
-  extend type Article {
-    feedback: [ArticleFeedback]
+  extend type Post {
+    feedback: [PostFeedback]
   }
 `;
 
 const resolvers = {
   Query: {
-    articleFeedback: async (_, { articleId }, { asset, user }) => {
+    postFeedback: async (_, { postId }, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
       const model = getCollection(
         asset,
-        articleFeedbackCollection,
-        articleFeedbackSchema
+        postFeedbackCollection,
+        postFeedbackSchema
       );
-      return await model.find({ articleId: articleId, userId: user.userId });
+      return await model.find({ postId: postId, userId: user.userId });
     },
   },
 
-  Article: {
+  Post: {
     feedback: {
       resolve: async (parent, _args, { asset, user }) => {
         if (!asset || !user) {
@@ -48,37 +48,33 @@ const resolvers = {
         }
         const model = getCollection(
           asset,
-          articleFeedbackCollection,
-          articleFeedbackSchema
+          postFeedbackCollection,
+          postFeedbackSchema
         );
-        return await model.find({ articleId: parent.id, userId: user.userId });
+        return await model.find({ postId: parent.id, userId: user.userId });
       },
     },
   },
 
   Mutation: {
-    addArticleFeedback: async (_, args, { asset, user }) => {
+    addPostFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
       const model = getCollection(
         asset,
-        articleFeedbackCollection,
-        articleFeedbackSchema
+        postFeedbackCollection,
+        postFeedbackSchema
       );
       const response = await model.findOneAndUpdate(
-        { articleId: args.articleId, userId: user.userId, type: args.type },
-        { articleId: args.articleId, userId: user.userId, type: args.type },
+        { postId: args.postId, userId: user.userId, type: args.type },
+        { postId: args.postId, userId: user.userId, type: args.type },
         { upsert: true, new: true, rawResult: true }
       );
       if (!response.lastErrorObject.updatedExisting) {
-        const articleModel = getCollection(
-          asset,
-          articleCollection,
-          articleSchema
-        );
-        await articleModel.findByIdAndUpdate(
-          args.articleId,
+        const postModel = getCollection(asset, postCollection, postSchema);
+        await postModel.findByIdAndUpdate(
+          args.postId,
           {
             $inc: { [args.type]: 1 },
           },
@@ -87,29 +83,25 @@ const resolvers = {
       }
       return response.value;
     },
-    removeArticleFeedback: async (_, args, { asset, user }) => {
+    removePostFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
         return new AuthenticationError('Not authorized to access this content');
       }
       const model = getCollection(
         asset,
-        articleFeedbackCollection,
-        articleFeedbackSchema
+        postFeedbackCollection,
+        postFeedbackSchema
       );
       const response = await model.findOneAndDelete(
-        { articleId: args.articleId, userId: user.userId, type: args.type },
+        { postId: args.postId, userId: user.userId, type: args.type },
         {
           rawResult: true,
         }
       );
       if (response.lastErrorObject.n > 0) {
-        const articleModel = getCollection(
-          asset,
-          articleCollection,
-          articleSchema
-        );
-        await articleModel.findByIdAndUpdate(
-          args.articleId,
+        const postModel = getCollection(asset, postCollection, postSchema);
+        await postModel.findByIdAndUpdate(
+          args.postId,
           {
             $inc: { [args.type]: -1 },
           },

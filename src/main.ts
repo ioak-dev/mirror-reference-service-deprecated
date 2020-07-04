@@ -17,13 +17,19 @@ mongoose.pluralize(undefined);
 
 const server = new ApolloServer({
   modules: [
+    require('./modules/asset'),
+    require('./modules/session'),
+    require('./modules/user/index.ts'),
     require('./modules/article'),
     require('./modules/article/tag'),
     require('./modules/article/feedback'),
     require('./modules/article/category'),
-    require('./modules/asset'),
-    require('./modules/session'),
-    require('./modules/user/index.ts'),
+    require('./modules/post'),
+    require('./modules/post/tag'),
+    require('./modules/post/feedback'),
+    require('./modules/post/follower'),
+    require('./modules/post/comment'),
+    require('./modules/post/comment/feedback'),
   ],
   context: ({ req, res }: any) => {
     const authString = req.headers.authorization || '';
