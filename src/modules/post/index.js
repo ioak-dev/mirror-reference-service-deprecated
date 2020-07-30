@@ -62,6 +62,9 @@ const typeDefs = gql`
   extend type PostFollower {
     post: Post
   }
+  extend type PostComment {
+    post: Post
+  }
 `;
 
 const resolvers = {
@@ -164,6 +167,13 @@ const resolvers = {
   },
 
   PostFollower: {
+    post: async (parent, _, { asset, user }) => {
+      const model = getCollection(asset, postCollection, postSchema);
+      return await model.findById(parent.postId);
+    },
+  },
+
+  PostComment: {
     post: async (parent, _, { asset, user }) => {
       const model = getCollection(asset, postCollection, postSchema);
       return await model.findById(parent.postId);
