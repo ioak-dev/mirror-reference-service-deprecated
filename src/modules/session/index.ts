@@ -34,7 +34,7 @@ const typeDefs = gql`
 const oaSession = async (asset: string, space: string, authKey: string) => {
   try {
     const response = await axios.get(
-      `${ONEAUTH_API}/auth/${space}/session/${authKey}`
+      `${ONEAUTH_API}/auth/space/${space}/session/${authKey}`
     );
 
     if (response.status === 200) {
