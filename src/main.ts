@@ -8,7 +8,7 @@ import { authorize } from './middlewares';
 import mongoose from 'mongoose';
 import { initializeSequences } from './startup';
 
-const databaseUri = process.env.DATABASE_URI || 'mongodb://localhost:27017';
+const databaseUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 mongoose.connect(databaseUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
