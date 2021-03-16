@@ -1,8 +1,8 @@
-const { gql } = require('apollo-server');
-const { assetCollection, assetSchema } = require('./model');
-const { getGlobalCollection } = require('../../lib/dbutils');
-const { isUnauthorized } = require('../../lib/authutils');
-const { nextval } = require('../sequence/service');
+const { gql } = require("apollo-server-express");
+const { assetCollection, assetSchema } = require("./model");
+const { getGlobalCollection } = require("../../lib/dbutils");
+const { isUnauthorized } = require("../../lib/authutils");
+const { nextval } = require("../sequence/service");
 
 const typeDefs = gql`
   extend type Query {
@@ -74,7 +74,7 @@ const resolvers = {
       } else {
         const data = new model({
           ...args.payload,
-          assetId: `a${await nextval('assetId')}`,
+          assetId: `a${await nextval("assetId")}`,
         });
         return await data.save();
       }
@@ -83,7 +83,7 @@ const resolvers = {
       const model = getGlobalCollection(assetCollection, assetSchema);
       const data = new model({
         ...payload,
-        assetId: `a${await nextval('assetId')}`,
+        assetId: `a${await nextval("assetId")}`,
       });
       console.log(
         `user account needs to be setup for ${addition.email} in ${payload.name}`

@@ -1,13 +1,13 @@
-import jwt from 'jsonwebtoken';
-import { gql, AuthenticationError } from 'apollo-server';
-import { sessionSchema, sessionCollection } from './model';
-import { userSchema, userCollection } from '../user/model';
-const { getCollection } = require('../../lib/dbutils');
-import { v4 as uuidv4 } from 'uuid';
+import jwt from "jsonwebtoken";
+import { gql, AuthenticationError } from "apollo-server-express";
+import { sessionSchema, sessionCollection } from "./model";
+import { userSchema, userCollection } from "../user/model";
+const { getCollection } = require("../../lib/dbutils");
+import { v4 as uuidv4 } from "uuid";
 
-const axios = require('axios');
+const axios = require("axios");
 
-const ONEAUTH_API = process.env.ONEAUTH_API || 'http://127.0.0.1:8020';
+const ONEAUTH_API = process.env.ONEAUTH_API || "http://127.0.0.1:8020";
 
 const typeDefs = gql`
   extend type Query {
@@ -38,11 +38,11 @@ const oaSession = async (asset: string, space: string, authKey: string) => {
     );
 
     if (response.status === 200) {
-      const user: any = jwt.verify(response.data.token, 'jwtsecret');
+      const user: any = jwt.verify(response.data.token, "jwtsecret");
       const model = getCollection(asset, userCollection, userSchema);
       const data = await model.findByIdAndUpdate(
         user.userId,
-        { ...user, resolver: 'oneauth_space' },
+        { ...user, resolver: "oneauth_space" },
         { new: true, upsert: true }
       );
       if (data) {
@@ -71,7 +71,7 @@ const emailOrExternSession = async (asset: string, sessionId: string) => {
     return null;
   }
 
-  const data: any = await jwt.verify(session.token, 'jwtsecret');
+  const data: any = await jwt.verify(session.token, "jwtsecret");
 
   if (!data) {
     return null;
@@ -90,7 +90,7 @@ const resolvers = {
   Query: {
     newEmailSession: async (_: any, { email }: any, { asset }: any) => {
       const userModel = getCollection(asset, userCollection, userSchema);
-      const user = await userModel.findOne({ email, resolver: 'email' });
+      const user = await userModel.findOne({ email, resolver: "email" });
       if (user) {
         const model = getCollection(asset, sessionCollection, sessionSchema);
         return await model.create({
@@ -103,8 +103,8 @@ const resolvers = {
               email: user.email,
               strategy: user.strategy,
             },
-            'jwtsecret',
-            { expiresIn: '8h' }
+            "jwtsecret",
+            { expiresIn: "8h" }
           ),
         });
       }
@@ -115,7 +115,7 @@ const resolvers = {
         if (!args.token) {
           return null;
         }
-        const data: any = jwt.verify(args.token, 'jwtsecret');
+        const data: any = jwt.verify(args.token, "jwtsecret");
         const userModel = getCollection(
           asset || args.asset,
           userCollection,
@@ -123,8 +123,8 @@ const resolvers = {
         );
 
         const response = await userModel.findOneAndUpdate(
-          { email: data.email, resolver: 'extern' },
-          { ...data, resolver: 'extern' },
+          { email: data.email, resolver: "extern" },
+          { ...data, resolver: "extern" },
           { upsert: true, new: true, rawResult: true }
         );
         const user = response.value;
@@ -144,8 +144,8 @@ const resolvers = {
                 email: user.email,
                 strategy: user.strategy,
               },
-              'jwtsecret',
-              { expiresIn: '8h' }
+              "jwtsecret",
+              { expiresIn: "8h" }
             ),
           });
         }
@@ -155,12 +155,12 @@ const resolvers = {
       }
     },
     session: async (_: any, args: any, { asset }: any) => {
-      const keyParts = args.key.split(' ');
+      const keyParts = args.key.split(" ");
       switch (keyParts[0]) {
-        case 'oa':
+        case "oa":
           return await oaSession(asset || args.asset, keyParts[1], keyParts[2]);
-        case 'email':
-        case 'extern':
+        case "email":
+        case "extern":
           return await emailOrExternSession(asset || args.asset, keyParts[1]);
       }
     },

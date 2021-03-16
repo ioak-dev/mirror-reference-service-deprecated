@@ -1,10 +1,10 @@
-const { gql, AuthenticationError } = require('apollo-server');
+const { gql, AuthenticationError } = require("apollo-server-express");
 const {
   postCommentFeedbackSchema,
   postCommentFeedbackCollection,
-} = require('./model');
-const { postCommentSchema, postCommentCollection } = require('../model');
-const { getCollection } = require('../../../../lib/dbutils');
+} = require("./model");
+const { postCommentSchema, postCommentCollection } = require("../model");
+const { getCollection } = require("../../../../lib/dbutils");
 
 const typeDefs = gql`
   extend type Query {
@@ -36,7 +36,7 @@ const resolvers = {
   Query: {
     postCommentFeedback: async (_, { commentId }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -52,7 +52,7 @@ const resolvers = {
       resolve: async (parent, _args, { asset, user }) => {
         if (!asset || !user) {
           return new AuthenticationError(
-            'Not authorized to access this content'
+            "Not authorized to access this content"
           );
         }
         const model = getCollection(
@@ -68,7 +68,7 @@ const resolvers = {
   Mutation: {
     addPostCommentFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -98,7 +98,7 @@ const resolvers = {
     },
     removePostCommentFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,

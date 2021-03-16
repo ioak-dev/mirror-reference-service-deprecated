@@ -1,14 +1,14 @@
-import jwt from 'jsonwebtoken';
-import { gql, AuthenticationError } from 'apollo-server';
-import { userSchema, userCollection } from './model';
-const { getCollection } = require('../../lib/dbutils');
+import jwt from "jsonwebtoken";
+import { gql, AuthenticationError } from "apollo-server-express";
+import { userSchema, userCollection } from "./model";
+const { getCollection } = require("../../lib/dbutils");
 
 const typeDefs = gql`
-  extend type Query {
+  type Query {
     users: [User]!
   }
 
-  extend type Mutation {
+  type Mutation {
     createEmailAccount(payload: UserPayload): User!
   }
 
@@ -35,7 +35,7 @@ const resolvers = {
   Query: {
     users: async (_: any, { email }: any, { asset, user }: any) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, userCollection, userSchema);
       return await model.find();
@@ -52,8 +52,8 @@ const resolvers = {
     createEmailAccount: async (_: any, args: any, { asset, user }: any) => {
       const model = getCollection(asset, userCollection, userSchema);
       const response = await model.findOneAndUpdate(
-        { email: args.payload.email, resolver: 'email' },
-        { ...args.payload, resolver: 'email' },
+        { email: args.payload.email, resolver: "email" },
+        { ...args.payload, resolver: "email" },
         { upsert: true, new: true, rawResult: true }
       );
       return response.value;

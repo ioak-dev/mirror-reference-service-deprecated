@@ -1,7 +1,7 @@
-const { gql, AuthenticationError } = require('apollo-server');
-const { postCommentSchema, postCommentCollection } = require('./model');
-const { postSchema, postCollection } = require('../model');
-const { getCollection } = require('../../../lib/dbutils');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { postCommentSchema, postCommentCollection } = require("./model");
+const { postSchema, postCollection } = require("../model");
+const { getCollection } = require("../../../lib/dbutils");
 
 const typeDefs = gql`
   extend type Query {
@@ -59,7 +59,7 @@ const resolvers = {
       { asset, user }
     ) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -81,7 +81,7 @@ const resolvers = {
     },
     postComment: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -95,7 +95,7 @@ const resolvers = {
   PostCommentFeedback: {
     postComment: async (parent, _, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -109,7 +109,7 @@ const resolvers = {
   Mutation: {
     updatePostComment: async (_, { payload }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -157,7 +157,7 @@ const resolvers = {
     },
     markPostCommentAsAnswer: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -199,7 +199,7 @@ const resolvers = {
     },
     unmarkPostCommentAsAnswer: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,

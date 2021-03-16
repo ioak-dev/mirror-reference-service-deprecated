@@ -1,12 +1,12 @@
-const { gql, AuthenticationError } = require('apollo-server');
-const { GraphQLScalarType } = require('graphql');
-const { postSchema, postCollection } = require('./model');
-const { postTagSchema, postTagCollection } = require('./tag/model');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { GraphQLScalarType } = require("graphql");
+const { postSchema, postCollection } = require("./model");
+const { postTagSchema, postTagCollection } = require("./tag/model");
 const {
   postFollowerSchema,
   postFollowerCollection,
-} = require('./follower/model');
-const { getCollection } = require('../../lib/dbutils');
+} = require("./follower/model");
+const { getCollection } = require("../../lib/dbutils");
 
 const typeDefs = gql`
   extend type Query {
@@ -71,7 +71,7 @@ const resolvers = {
   Query: {
     post: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postCollection, postSchema);
       response = await model.findByIdAndUpdate(
@@ -83,7 +83,7 @@ const resolvers = {
     },
     posts: async (_, { pageSize = 0, pageNo = 0 }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postCollection, postSchema);
       const response = await model
@@ -102,7 +102,7 @@ const resolvers = {
       { asset, user }
     ) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       if (!text) {
         return {
@@ -116,8 +116,8 @@ const resolvers = {
       const res = await model
         .find({
           $or: [
-            { description: { $regex: new RegExp(text, 'ig') } },
-            { title: { $regex: new RegExp(text, 'ig') } },
+            { description: { $regex: new RegExp(text, "ig") } },
+            { title: { $regex: new RegExp(text, "ig") } },
           ],
         })
         .skip(pageNo * pageSize)
@@ -131,7 +131,7 @@ const resolvers = {
     },
     myPosts: async (_, { pageSize = 0, pageNo = 0 }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postCollection, postSchema);
       const res = await model
@@ -152,7 +152,7 @@ const resolvers = {
   PostFeedback: {
     post: async (parent, _, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postCollection, postSchema);
       return await model.findById(parent.postId);
@@ -183,7 +183,7 @@ const resolvers = {
   Mutation: {
     addPost: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postCollection, postSchema);
       const tagModel = getCollection(asset, postTagCollection, postTagSchema);
@@ -236,7 +236,7 @@ const resolvers = {
     },
     deletePost: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postCollection, postSchema);
       const tagModel = getCollection(asset, postTagCollection, postTagSchema);

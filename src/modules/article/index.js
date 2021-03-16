@@ -1,4 +1,4 @@
-const { gql, AuthenticationError } = require('apollo-server');
+const { gql, AuthenticationError } = require('apollo-server-express');
 const { GraphQLScalarType } = require('graphql');
 const { articleSchema, articleCollection } = require('./model');
 const { articleTagSchema, articleTagCollection } = require('./tag/model');

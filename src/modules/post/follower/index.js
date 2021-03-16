@@ -1,7 +1,7 @@
-const { gql, AuthenticationError } = require('apollo-server');
-const { postFollowerSchema, postFollowerCollection } = require('./model');
-const { postSchema, postCollection } = require('./../model');
-const { getCollection } = require('../../../lib/dbutils');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { postFollowerSchema, postFollowerCollection } = require("./model");
+const { postSchema, postCollection } = require("./../model");
+const { getCollection } = require("../../../lib/dbutils");
 
 const typeDefs = gql`
   type PostFollower {
@@ -26,7 +26,7 @@ const resolvers = {
       resolve: async (parent, _args, { asset, user }, info) => {
         if (!asset || !user) {
           return new AuthenticationError(
-            'Not authorized to access this content'
+            "Not authorized to access this content"
           );
         }
         const model = getCollection(
@@ -42,7 +42,7 @@ const resolvers = {
   Mutation: {
     followPost: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -68,7 +68,7 @@ const resolvers = {
     },
     unfollowPost: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,

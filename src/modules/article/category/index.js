@@ -1,7 +1,7 @@
-const { gql, AuthenticationError } = require('apollo-server');
-const { categoryCollection, categorySchema } = require('./model');
-const { getCollection } = require('../../../lib/dbutils');
-const { isUnauthorized } = require('../../../lib/authutils');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { categoryCollection, categorySchema } = require("./model");
+const { getCollection } = require("../../../lib/dbutils");
+const { isUnauthorized } = require("../../../lib/authutils");
 
 const typeDefs = gql`
   extend type Query {
@@ -35,14 +35,14 @@ const resolvers = {
   Query: {
     articleCategory: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, categoryCollection, categorySchema);
       return await model.findById(id);
     },
     articleCategories: async (_, __, { user, asset }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, categoryCollection, categorySchema);
       return await model.find();
@@ -52,7 +52,7 @@ const resolvers = {
   Mutation: {
     addArticleCategory: async (_, args, { user, asset }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, categoryCollection, categorySchema);
       if (args.payload.id) {
@@ -71,7 +71,7 @@ const resolvers = {
       resolve: async (parent, _args, { asset, user }, info) => {
         if (!asset || !user) {
           return new AuthenticationError(
-            'Not authorized to access this content'
+            "Not authorized to access this content"
           );
         }
         const model = getCollection(asset, categoryCollection, categorySchema);

@@ -1,6 +1,6 @@
-const { gql, AuthenticationError } = require('apollo-server');
-const { postTagSchema, postTagCollection } = require('./model');
-const { getCollection } = require('../../../lib/dbutils');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { postTagSchema, postTagCollection } = require("./model");
+const { getCollection } = require("../../../lib/dbutils");
 
 const typeDefs = gql`
   extend type Query {
@@ -34,20 +34,20 @@ const resolvers = {
   Query: {
     postTagCloud: async (_, __, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, postTagCollection, postTagSchema);
       return await model.aggregate([
         {
           $group: {
-            _id: '$name',
+            _id: "$name",
             count: { $sum: 1 },
           },
         },
         {
           $project: {
-            name: '$_id',
-            count: '$count',
+            name: "$_id",
+            count: "$count",
           },
         },
       ]);
@@ -58,7 +58,7 @@ const resolvers = {
       { asset, user }
     ) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       if (!tag) {
         return {
@@ -92,7 +92,7 @@ const resolvers = {
       resolve: async (parent, _args, { asset, user }, info) => {
         if (!asset || !user) {
           return new AuthenticationError(
-            'Not authorized to access this content'
+            "Not authorized to access this content"
           );
         }
         const model = getCollection(asset, postTagCollection, postTagSchema);

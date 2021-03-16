@@ -1,7 +1,7 @@
-const { gql, AuthenticationError } = require('apollo-server');
-const { articleFeedbackSchema, articleFeedbackCollection } = require('./model');
-const { articleSchema, articleCollection } = require('../model');
-const { getCollection } = require('../../../lib/dbutils');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { articleFeedbackSchema, articleFeedbackCollection } = require("./model");
+const { articleSchema, articleCollection } = require("../model");
+const { getCollection } = require("../../../lib/dbutils");
 
 const typeDefs = gql`
   extend type Query {
@@ -27,7 +27,7 @@ const resolvers = {
   Query: {
     articleFeedback: async (_, { articleId }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -43,7 +43,7 @@ const resolvers = {
       resolve: async (parent, _args, { asset, user }) => {
         if (!asset || !user) {
           return new AuthenticationError(
-            'Not authorized to access this content'
+            "Not authorized to access this content"
           );
         }
         const model = getCollection(
@@ -59,7 +59,7 @@ const resolvers = {
   Mutation: {
     addArticleFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
@@ -89,7 +89,7 @@ const resolvers = {
     },
     removeArticleFeedback: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(
         asset,
