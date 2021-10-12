@@ -1,9 +1,9 @@
-const { gql, AuthenticationError } = require('apollo-server-express');
-const { GraphQLScalarType } = require('graphql');
-const { articleSchema, articleCollection } = require('./model');
-const { articleTagSchema, articleTagCollection } = require('./tag/model');
-const { categorySchema, categoryCollection } = require('./category/model');
-const { getCollection } = require('../../lib/dbutils');
+const { gql, AuthenticationError } = require("apollo-server-express");
+const { GraphQLScalarType } = require("graphql");
+const { articleSchema, articleCollection } = require("./model");
+const { articleTagSchema, articleTagCollection } = require("./tag/model");
+const { categorySchema, categoryCollection } = require("./category/model");
+const { getCollection } = require("../../lib/dbutils");
 
 const typeDefs = gql`
   scalar DateScalar
@@ -11,6 +11,12 @@ const typeDefs = gql`
     article(id: ID!): Article
     articles(categoryId: ID!, pageSize: Int, pageNo: Int): ArticlePaginated
     searchArticles(text: String, pageSize: Int, pageNo: Int): ArticlePaginated
+    getArticles(
+      text: String
+      categoryId: String
+      pageSize: Int
+      pageNo: Int
+    ): ArticlePaginated
   }
 
   extend type Mutation {
@@ -20,8 +26,8 @@ const typeDefs = gql`
 
   input ArticlePayload {
     id: String
-    title: String
-    description: String
+    title: JSON
+    description: JSON
     categoryId: String
     addTags: [String]
     removeTags: [String]
@@ -36,9 +42,12 @@ const typeDefs = gql`
 
   type Article {
     id: ID!
-    title: String
-    description: String
+    title: JSON
+    description: JSON
     views: Int!
+    comments: Int!
+    isAnswered: Boolean!
+    answeredOn: DateScalar
     helpful: Int!
     notHelpful: Int!
     createdAt: DateScalar
@@ -48,15 +57,15 @@ const typeDefs = gql`
   extend type ArticleFeedback {
     article: Article
   }
-  extend type ArticleTag {
+  extend type ArticleComment {
     article: Article
   }
 `;
 
 const resolvers = {
   DateScalar: new GraphQLScalarType({
-    name: 'DateScalar',
-    description: 'Date custom scalar type',
+    name: "DateScalar",
+    description: "Date custom scalar type",
     parseValue(value) {
       return new Date(value); // value from the client
     },
@@ -73,7 +82,7 @@ const resolvers = {
   Query: {
     article: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, articleCollection, articleSchema);
       response = await model.findByIdAndUpdate(
@@ -89,7 +98,7 @@ const resolvers = {
       { asset, user }
     ) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       if (!categoryId) {
         return {
@@ -115,7 +124,7 @@ const resolvers = {
       { asset, user }
     ) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       if (!text) {
         return {
@@ -129,8 +138,8 @@ const resolvers = {
       const res = await model
         .find({
           $or: [
-            { description: { $regex: new RegExp(text, 'ig') } },
-            { title: { $regex: new RegExp(text, 'ig') } },
+            { description: { $regex: new RegExp(text, "ig") } },
+            { title: { $regex: new RegExp(text, "ig") } },
           ],
         })
         .skip(pageNo * pageSize)
@@ -142,19 +151,63 @@ const resolvers = {
         hasMore: res.length === pageSize ? true : false,
       };
     },
+    getArticles: async (
+      _,
+      { text, categoryId, pageSize = 0, pageNo = 0 },
+      { asset, user }
+    ) => {
+      if (!asset || !user) {
+        return new AuthenticationError("Not authorized to access this content");
+      }
+      const model = getCollection(asset, articleCollection, articleSchema);
+      let res = [];
+      if (text) {
+        res = await model
+          .find({
+            $or: [
+              { description: { $regex: new RegExp(text, "ig") } },
+              { title: { $regex: new RegExp(text, "ig") } },
+            ],
+          })
+          .skip(pageNo * pageSize)
+          .limit(pageSize);
+      } else if (categoryId) {
+        res = await model
+          .find({ categoryId: categoryId })
+          .skip(pageNo * pageSize)
+          .limit(pageSize);
+      } else {
+        res = await model
+          .find()
+          .skip(pageNo * pageSize)
+          .limit(pageSize);
+      }
+
+      // return {
+      //   results: [],
+      //   pageNo: 0,
+      //   hasMore: false,
+      //   total: 0,
+      // };
+      return {
+        results: res,
+        pageNo: res.length === pageSize ? pageNo + 1 : pageNo,
+        hasMore: res.length === pageSize ? true : false,
+      };
+    },
   },
 
   ArticleFeedback: {
     article: async (parent, _, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
     },
   },
 
-  ArticleTag: {
+  ArticleComment: {
     article: async (parent, _, { asset, user }) => {
       const model = getCollection(asset, articleCollection, articleSchema);
       return await model.findById(parent.articleId);
@@ -164,7 +217,7 @@ const resolvers = {
   Mutation: {
     addArticle: async (_, args, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, articleCollection, articleSchema);
       const tagModel = getCollection(
@@ -241,7 +294,7 @@ const resolvers = {
     },
     deleteArticle: async (_, { id }, { asset, user }) => {
       if (!asset || !user) {
-        return new AuthenticationError('Not authorized to access this content');
+        return new AuthenticationError("Not authorized to access this content");
       }
       const model = getCollection(asset, articleCollection, articleSchema);
       const tagModel = getCollection(

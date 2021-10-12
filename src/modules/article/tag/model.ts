@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 const articleTagSchema = new Schema(
@@ -9,7 +9,7 @@ const articleTagSchema = new Schema(
   { timestamps: true }
 );
 
-const articleTagCollection = 'article.tag';
+const articleTagCollection = "article.tag";
 
 // module.exports = mongoose.model('bookmarks', articleSchema);
-module.exports = { articleTagSchema, articleTagCollection };
+export { articleTagSchema, articleTagCollection };

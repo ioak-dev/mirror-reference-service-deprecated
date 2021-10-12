@@ -19,7 +19,10 @@ const typeDefs = gql`
   input AssetPayload {
     id: String
     name: String
-    description: String
+    section: JSON
+    featuredTitle: String
+    featuredSubtitle: String
+    hero: JSON
     jwtPassword: String
     productionMode: Boolean
   }
@@ -31,7 +34,10 @@ const typeDefs = gql`
   type Asset {
     id: ID!
     name: String
-    description: String
+    section: JSON
+    featuredTitle: String
+    featuredSubtitle: String
+    hero: JSON
     jwtPassword: String
     productionMode: Boolean
     assetId: String

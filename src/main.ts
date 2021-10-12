@@ -10,19 +10,21 @@ import { initializeSequences } from "./startup";
 const express = require("express");
 const cors = require("cors");
 
+const ApiRoute = require("./route");
+
+const gqlScalarSchema = require("./modules/gql-scalar");
 const assetSchema = require("./modules/asset");
 const sessionSchema = require("./modules/session");
 const userSchema = require("./modules/user");
 const articleSchema = require("./modules/article");
+const articleCommentSchema = require("./modules/article/comment");
+const articleCommentFeedbackSchema = require("./modules/article/comment/feedback");
 const articleFeedbackSchema = require("./modules/article/feedback");
-const articleCategorySchema = require("./modules/article/category");
-const articleTagSchema = require("./modules/article/tag");
 const postSchema = require("./modules/post");
 const postCommentSchema = require("./modules/post/comment");
 const postCommentFeedbackSchema = require("./modules/post/comment/feedback");
 const postFeedbackSchema = require("./modules/post/feedback");
 const postFollowerSchema = require("./modules/post/follower");
-const postTagSchema = require("./modules/post/tag");
 
 const databaseUri = process.env.MONGODB_URI || "mongodb://localhost:27017";
 mongoose.connect(databaseUri, {
@@ -35,34 +37,34 @@ const app = express();
 
 const server = new ApolloServer({
   typeDefs: [
+    gqlScalarSchema.typeDefs,
     assetSchema.typeDefs,
     sessionSchema.typeDefs,
     userSchema.typeDefs,
     articleSchema.typeDefs,
-    articleCategorySchema.typeDefs,
+    articleCommentSchema.typeDefs,
+    articleCommentFeedbackSchema.typeDefs,
     articleFeedbackSchema.typeDefs,
-    articleTagSchema.typeDefs,
     postSchema.typeDefs,
     postCommentSchema.typeDefs,
     postCommentFeedbackSchema.typeDefs,
     postFeedbackSchema.typeDefs,
     postFollowerSchema.typeDefs,
-    postTagSchema.typeDefs,
   ],
   resolvers: [
+    gqlScalarSchema.resolvers,
     assetSchema.resolvers,
     sessionSchema.resolvers,
     userSchema.resolvers,
     articleSchema.resolvers,
-    articleCategorySchema.resolvers,
+    articleCommentSchema.resolvers,
+    articleCommentFeedbackSchema.resolvers,
     articleFeedbackSchema.resolvers,
-    articleTagSchema.resolvers,
     postSchema.resolvers,
     postCommentSchema.resolvers,
     postCommentFeedbackSchema.resolvers,
     postFeedbackSchema.resolvers,
     postFollowerSchema.resolvers,
-    postTagSchema.resolvers,
   ],
   context: ({ req, res }: any) => {
     const authString = req.headers.authorization || "";
@@ -84,13 +86,13 @@ const server = new ApolloServer({
 server.applyMiddleware({ app });
 
 app.use(cors());
-
-app.get("/hello", (_: any, res: any) => {
-  res.send(
-    "basic connection to server works. database connection is not validated"
-  );
-  res.end();
-});
+app.use(express.json({ limit: 5000000 }));
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+app.use("/api", ApiRoute);
 
 app.use((_: any, res: any) => {
   res.status(200);

@@ -16,7 +16,6 @@ const typeDefs = gql`
   input ArticleCategoryPayload {
     id: String
     name: String
-    parentCategoryId: String
   }
 
   extend type Article {
@@ -26,7 +25,6 @@ const typeDefs = gql`
   type ArticleCategory {
     id: ID!
     name: String
-    parentCategoryId: String
     articles: Int
   }
 `;

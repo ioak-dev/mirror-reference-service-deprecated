@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 const sessionSchema = new Schema(
@@ -10,7 +10,7 @@ const sessionSchema = new Schema(
   { timestamps: true }
 );
 
-const sessionCollection = 'session';
+const sessionCollection = "session";
 
 // module.exports = mongoose.model('bookmarks', articleSchema);
 export { sessionSchema, sessionCollection };

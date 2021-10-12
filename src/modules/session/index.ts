@@ -11,9 +11,7 @@ const ONEAUTH_API = process.env.ONEAUTH_API || "http://127.0.0.1:8020";
 
 const typeDefs = gql`
   extend type Query {
-    newEmailSession(email: String!): Session
-    newExternSession(token: String!, asset: String): Session
-    session(key: ID!, asset: String): UserSession
+    session(id: ID!, space: String): UserSession
   }
 
   type Session {
@@ -31,15 +29,15 @@ const typeDefs = gql`
   }
 `;
 
-const oaSession = async (asset: string, space: string, authKey: string) => {
+const oaSession = async (space: string, id: string) => {
   try {
     const response = await axios.get(
-      `${ONEAUTH_API}/auth/space/${space}/session/${authKey}`
+      `${ONEAUTH_API}/auth/space/${space}/session/${id}`
     );
 
     if (response.status === 200) {
       const user: any = jwt.verify(response.data.token, "jwtsecret");
-      const model = getCollection(asset, userCollection, userSchema);
+      const model = getCollection(space, userCollection, userSchema);
       const data = await model.findByIdAndUpdate(
         user.userId,
         { ...user, resolver: "oneauth_space" },
@@ -64,8 +62,8 @@ const oaSession = async (asset: string, space: string, authKey: string) => {
   }
 };
 
-const emailOrExternSession = async (asset: string, sessionId: string) => {
-  const model = getCollection(asset, sessionCollection, sessionSchema);
+const emailOrExternSession = async (space: string, sessionId: string) => {
+  const model = getCollection(space, sessionCollection, sessionSchema);
   const session = await model.findOne({ sessionId });
   if (!session) {
     return null;
@@ -88,81 +86,8 @@ const emailOrExternSession = async (asset: string, sessionId: string) => {
 
 const resolvers = {
   Query: {
-    newEmailSession: async (_: any, { email }: any, { asset }: any) => {
-      const userModel = getCollection(asset, userCollection, userSchema);
-      const user = await userModel.findOne({ email, resolver: "email" });
-      if (user) {
-        const model = getCollection(asset, sessionCollection, sessionSchema);
-        return await model.create({
-          sessionId: uuidv4(),
-          token: jwt.sign(
-            {
-              userId: user.id,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              email: user.email,
-              strategy: user.strategy,
-            },
-            "jwtsecret",
-            { expiresIn: "8h" }
-          ),
-        });
-      }
-      return null;
-    },
-    newExternSession: async (_: any, args: any, { asset }: any) => {
-      try {
-        if (!args.token) {
-          return null;
-        }
-        const data: any = jwt.verify(args.token, "jwtsecret");
-        const userModel = getCollection(
-          asset || args.asset,
-          userCollection,
-          userSchema
-        );
-
-        const response = await userModel.findOneAndUpdate(
-          { email: data.email, resolver: "extern" },
-          { ...data, resolver: "extern" },
-          { upsert: true, new: true, rawResult: true }
-        );
-        const user = response.value;
-        if (user) {
-          const model = getCollection(
-            asset || args.asset,
-            sessionCollection,
-            sessionSchema
-          );
-          return await model.create({
-            sessionId: uuidv4(),
-            token: jwt.sign(
-              {
-                userId: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                strategy: user.strategy,
-              },
-              "jwtsecret",
-              { expiresIn: "8h" }
-            ),
-          });
-        }
-        return null;
-      } catch (err) {
-        return null;
-      }
-    },
-    session: async (_: any, args: any, { asset }: any) => {
-      const keyParts = args.key.split(" ");
-      switch (keyParts[0]) {
-        case "oa":
-          return await oaSession(asset || args.asset, keyParts[1], keyParts[2]);
-        case "email":
-        case "extern":
-          return await emailOrExternSession(asset || args.asset, keyParts[1]);
-      }
+    session: async (_: any, { id, space }: any) => {
+      return await oaSession(space, id);
     },
   },
 };

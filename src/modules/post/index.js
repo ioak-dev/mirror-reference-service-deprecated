@@ -56,9 +56,6 @@ const typeDefs = gql`
   extend type PostFeedback {
     post: Post
   }
-  extend type PostTag {
-    post: Post
-  }
   extend type PostFollower {
     post: Post
   }
@@ -154,13 +151,6 @@ const resolvers = {
       if (!asset || !user) {
         return new AuthenticationError("Not authorized to access this content");
       }
-      const model = getCollection(asset, postCollection, postSchema);
-      return await model.findById(parent.postId);
-    },
-  },
-
-  PostTag: {
-    post: async (parent, _, { asset, user }) => {
       const model = getCollection(asset, postCollection, postSchema);
       return await model.findById(parent.postId);
     },
